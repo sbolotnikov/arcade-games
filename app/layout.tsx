@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     url: process.env.NEXTAUTH_URL + '',
     type: 'website',
     images: [
-      { url:  'https://arcade-games-rho.vercel.app/images/logo.png', width: 1200, height: 640 },
+      { url:  'https://arcade-games-rho.vercel.app/logo.jpg', width: 1200, height: 640 },
     ],
   },
 };
