@@ -1,4 +1,3 @@
-import Logo from '@/public/images/logo.png';
  
 import { ImageResponse } from 'next/og';
 

@@ -1,4 +1,3 @@
-import Logo from '@/public/images/logo.png';
  
 import { ImageResponse } from 'next/og';
 
@@ -28,7 +27,7 @@ export default function Icon() {
        
     }}
   >
-      <img width={144} height={144} alt={'Logo'} src={ 'https://arcade-games-rho.vercel.app/logo.png'}  />
+      <img width={144} height={144} alt={'Logo'} src={ 'https://arcade-games-rho.vercel.app/icon-144x144.png'}  />
   </div>
   
     ),
