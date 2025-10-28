@@ -12,9 +12,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Arcade Games',
-  description:
+   manifest: '/site.webmanifest', 
+    metadataBase:new URL('https://arcade-games-rho.vercel.app/'),
+    title: 'Oldfashioned Arcade Games',
+   description:
     'A collection of classic arcade games built with React. Choose your controls and aim for the high score in games like Tetris and Snake!',
+     openGraph: {
+    title: {
+      template: '%s',
+      default: 'Oldfashioned Arcade Games',
+    },
+    description:
+      'A collection of classic arcade games built with React. Choose your controls and aim for the high score in games like Tetris and Snake!',
+    url: process.env.NEXTAUTH_URL + '',
+    type: 'website',
+    images: [
+      { url:  'https://arcade-games-rho.vercel.app/images/logo.png', width: 1024, height: 1024, alt: 'Oldfashioned Arcade Games' },
+    ],
+  },
 };
 
 export default function RootLayout({
