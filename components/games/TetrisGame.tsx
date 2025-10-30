@@ -6,6 +6,8 @@ import GameStats from '../GameStats';
 import NextPiece from '../NextPiece';
 import Controls from '../Controls';
 import Leaderboard from '../Leaderboard';
+import PauseModal from '../PauseModal';
+import AudioPlayer from '../AudioPlayer';
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../../constants';
 
 interface Score {
@@ -35,11 +37,13 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
         level,
         lines,
         isGameOver,
+        isPaused,
         startGame,
         movePlayer,
         rotatePlayer,
         dropPlayer,
-        hardDropPlayer
+        hardDropPlayer,
+        togglePause
     } = useGame();
     
     useEffect(() => {
@@ -60,11 +64,20 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
         if (controlType === 'keyboard' && gameAreaRef.current) {
             gameAreaRef.current.focus();
         }
-    }, [controlType]);
+    }, [controlType, isPaused]);
 
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (isGameOver || controlType !== 'keyboard') return;
+        if (isGameOver) return;
+        if (controlType !== 'keyboard') return;
+
+        if (e.key === 'p' || e.key === 'Escape') {
+            e.preventDefault();
+            togglePause();
+            return;
+        }
+
+        if (isPaused) return;
         
         if (e.key === 'ArrowLeft') {
             movePlayer(-1);
@@ -75,7 +88,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
         } else if (e.key === 'ArrowUp') {
             rotatePlayer();
         } else if (e.key === ' ') {
-            e.preventDefault(); // Prevent page scroll
+            e.preventDefault();
             hardDropPlayer();
         }
     };
@@ -97,15 +110,28 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
             tabIndex={0}
             role="button"
         >
-            <button onClick={onBack} className="absolute top-2 left-2 md:top-4 md:left-4 text-cyan-400 hover:text-white z-20 transition-transform duration-200 hover:scale-110" aria-label="Back to games">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
-                </svg>
-            </button>
-            <header className="text-center md:col-span-2">
-                 <h1 className="text-lg md:text-5xl font-bold text-cyan-400 tracking-widest" style={{ textShadow: '0 0 10px #06b6d4, 0 0 20px #06b6d4' }}>
+            <header className="w-full flex justify-between items-center md:col-span-2">
+                <button onClick={onBack} className="text-cyan-400 hover:text-white z-20 transition-transform duration-200 hover:scale-110" aria-label="Back to games">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+                    </svg>
+                </button>
+                <h1 className="text-lg md:text-5xl font-bold text-cyan-400 tracking-widest" style={{ textShadow: '0 0 10px #06b6d4, 0 0 20px #06b6d4' }}>
                     TETRIS
                 </h1>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <AudioPlayer src="/tetris_music.mp3" isPlaying={!isGameOver && !isPaused} />
+                    <button onClick={togglePause} disabled={isGameOver} className="text-cyan-400 hover:text-white z-30 transition-transform duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Pause">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            {isPaused ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
+                            )}
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
             </header>
 
             <aside className="flex flex-row md:flex-col justify-center md:justify-start gap-1 md:gap-4
@@ -125,6 +151,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                         <p><span className="font-bold text-cyan-400">CONTROLS:</span></p>
                         <p><span className="font-bold">ARROWS</span> - MOVE & ROTATE</p>
                         <p><span className="font-bold">SPACE</span> - HARD DROP</p>
+                        <p><span className="font-bold">P/ESC</span> - PAUSE</p>
                         <p className="mt-4 italic opacity-70">Click game area to focus</p>
                     </div>
                  )}
@@ -134,9 +161,10 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                            md:row-start-2 md:col-start-1">
                 <div className="relative h-full w-auto max-w-full" style={{ aspectRatio: `${BOARD_WIDTH} / ${BOARD_HEIGHT}` }}>
                     <Board board={board} player={player} />
-                    {(isGameOver || score === 0) && (
-                         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4">
-                            {isGameOver && (
+                    {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
+                    {isGameOver && (
+                         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-20">
+                            {score > 0 && (
                                 <>
                                     <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
                                     <Leaderboard scores={highScores} />
@@ -146,7 +174,8 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                                 onClick={startGame}
                                 className="px-6 py-3 bg-cyan-500 text-slate-900 font-bold rounded-md hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300 transition-all duration-300 ease-in-out transform hover:scale-105"
                             >
-                                {isGameOver ? 'PLAY AGAIN' : 'START GAME'}
+                                {/* FIX: 'lives' is not defined in the useGame hook for Tetris. The button text should only depend on the score. */}
+                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
                             </button>
                         </div>
                     )}
@@ -159,7 +188,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                     rotatePlayer={rotatePlayer}
                     dropPlayer={dropPlayer}
                     hardDropPlayer={hardDropPlayer}
-                    isGameOver={isGameOver}
+                    isGameOver={isGameOver || isPaused}
                 />
              )}
         </div>

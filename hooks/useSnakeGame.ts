@@ -33,6 +33,7 @@ export const useSnakeGame = () => {
     const [score, setScore] = useState(0);
     const [isGameOver, setIsGameOver] = useState(true);
     const [isEating, setIsEating] = useState(false);
+    const [isPaused, setIsPaused] = useState(false);
 
     const manageObstacles = useCallback((currentScore: number, currentSnake: Snake, currentFood: Food[]) => {
         if (currentScore < 50) {
@@ -63,10 +64,16 @@ export const useSnakeGame = () => {
         setSpeed(INITIAL_SPEED);
         setScore(0);
         setIsEating(false);
+        setIsPaused(false);
     }, []);
 
-    const changeDirection = useCallback((newDirection: Direction) => {
+    const togglePause = useCallback(() => {
         if (isGameOver) return;
+        setIsPaused(p => !p);
+    }, [isGameOver]);
+
+    const changeDirection = useCallback((newDirection: Direction) => {
+        if (isGameOver || isPaused) return;
         // This logic prevents the snake from starting until a direction is chosen
         if (direction === null) {
             setDirection(newDirection);
@@ -80,7 +87,7 @@ export const useSnakeGame = () => {
             if (prevDirection === 'RIGHT' && newDirection === 'LEFT') return prevDirection;
             return newDirection;
         });
-    }, [isGameOver, direction]);
+    }, [isGameOver, isPaused, direction]);
 
     const gameLoop = useCallback(() => {
         if (!direction || isGameOver) return;
@@ -149,7 +156,7 @@ export const useSnakeGame = () => {
         });
     }, [direction, food, obstacles, isGameOver, score, manageObstacles]);
 
-    useInterval(gameLoop, speed);
+    useInterval(gameLoop, isPaused ? null : speed);
 
     return {
         boardSize: BOARD_SIZE,
@@ -159,7 +166,9 @@ export const useSnakeGame = () => {
         isGameOver,
         score,
         isEating,
+        isPaused,
         startGame,
         changeDirection,
+        togglePause,
     };
 };

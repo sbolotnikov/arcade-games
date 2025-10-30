@@ -38,3 +38,56 @@ export interface Platform {
     width: number;
     height: number;
 }
+
+// Digger Types
+export type DiggerCell = 'DIRT' | 'TUNNEL' | 'EMERALD' | 'GOLD' | 'ROCK';
+export type DiggerGrid = DiggerCell[][];
+
+export interface DiggerPlayerState {
+    x: number;
+    y: number;
+    direction: Direction;
+}
+
+export interface DiggerEnemyState {
+    id: number;
+    x: number;
+    y: number;
+    direction: Direction;
+    type: 'nobbin' | 'hobbin'; // Hobbins can dig
+    isSpawning: boolean;
+}
+
+export interface DiggerGoldState {
+    id: number;
+    x: number;
+    y: number;
+    isFalling: boolean;
+    fallTimer: number;
+}
+
+export interface DiggerBulletState {
+    id: number;
+    x: number;
+    y: number;
+    direction: Direction;
+}
+
+// Xonix Types
+export type XonixGridCell = 'BORDER' | 'FILLED' | 'EMPTY' | 'LINE';
+export type XonixGrid = XonixGridCell[][];
+
+export interface XonixPlayer {
+    x: number;
+    y: number;
+    direction: Direction | null;
+    isDrawing: boolean;
+}
+
+export interface XonixEnemy {
+    id: number;
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+}

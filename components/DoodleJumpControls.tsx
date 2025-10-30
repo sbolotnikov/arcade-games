@@ -30,14 +30,12 @@ const DoodleJumpControls: React.FC<DoodleJumpControlsProps> = ({ onMoveLeft, onM
     const moveButtonClasses = `w-20 h-20 ${baseButtonClasses}`;
     const boostButtonClasses = `w-24 h-24 text-lg font-bold ${baseButtonClasses}`;
 
-    // A single handler for starting movement to keep the JSX clean
     const handleMoveStart = (moveFn: () => void) => (e: React.TouchEvent | React.MouseEvent) => {
         if (isGameOver) return;
-        e.preventDefault(); // Prevent screen zoom on double tap
+        e.preventDefault();
         moveFn();
     };
 
-    // A single handler to stop movement, used by all move buttons
     const handleMoveEnd = (e: React.TouchEvent | React.MouseEvent) => {
         if (isGameOver) return;
         e.preventDefault();
@@ -45,8 +43,7 @@ const DoodleJumpControls: React.FC<DoodleJumpControlsProps> = ({ onMoveLeft, onM
     };
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between z-10 md:hidden">
-            {/* Movement controls on the left */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-between z-10 md:hidden">
             <div className="flex gap-4">
                 <button
                     className={moveButtonClasses}
@@ -74,7 +71,6 @@ const DoodleJumpControls: React.FC<DoodleJumpControlsProps> = ({ onMoveLeft, onM
                 </button>
             </div>
             
-            {/* Boost button on the right */}
             <button
                 className={boostButtonClasses}
                 onMouseDown={onHoldJump}

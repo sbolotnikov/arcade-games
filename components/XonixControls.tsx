@@ -1,9 +1,10 @@
 'use client';
 
+
 import React from 'react';
 import type { Direction } from '../types';
 
-interface SnakeControlsProps {
+interface XonixControlsProps {
     onDirectionChange: (dir: Direction) => void;
     isGameOver: boolean;
 }
@@ -22,8 +23,8 @@ const ArrowIcon: React.FC<{ rotation?: number }> = ({ rotation = 0 }) => (
     </svg>
 );
 
-const SnakeControls: React.FC<SnakeControlsProps> = ({ onDirectionChange, isGameOver }) => {
-    const buttonClasses = "w-16 h-16 flex items-center justify-center rounded-full bg-slate-800 bg-opacity-70 text-green-400 active:bg-green-500 active:text-slate-900 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all select-none active:scale-95";
+const XonixControls: React.FC<XonixControlsProps> = ({ onDirectionChange, isGameOver }) => {
+    const buttonClasses = "w-16 h-16 flex items-center justify-center rounded-full bg-slate-800 bg-opacity-70 text-cyan-400 active:bg-cyan-500 active:text-slate-900 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all select-none active:scale-95";
 
     const handlePress = (dir: Direction) => (e: React.TouchEvent | React.MouseEvent) => {
         if (isGameOver) return;
@@ -58,4 +59,4 @@ const SnakeControls: React.FC<SnakeControlsProps> = ({ onDirectionChange, isGame
     );
 };
 
-export default SnakeControls;
+export default XonixControls;

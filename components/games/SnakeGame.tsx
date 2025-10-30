@@ -4,6 +4,8 @@ import { useSnakeGame } from '../../hooks/useSnakeGame';
 import GameStats from '../GameStats';
 import Leaderboard from '../Leaderboard';
 import SnakeControls from '../SnakeControls';
+import PauseModal from '../PauseModal';
+import AudioPlayer from '../AudioPlayer';
 import type { Direction, SnakeSegment, Food, Obstacle } from '../../types';
 
 interface Score {
@@ -33,16 +35,13 @@ const SnakeHead: React.FC<{ segment: SnakeSegment; isEating: boolean }> = ({ seg
     };
     return (
         <div className="absolute w-full h-full" style={style}>
-            {/* Head */}
             <div className="absolute w-[90%] h-[90%] left-[5%] top-[5%] bg-green-400 rounded-md"></div>
-            {/* Eyes */}
             <div className="absolute w-1/5 h-1/5 bg-white rounded-full top-[15%] left-[20%] animate-blink">
                 <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
             </div>
              <div className="absolute w-1/5 h-1/5 bg-white rounded-full top-[65%] left-[20%] animate-blink">
                 <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
             </div>
-            {/* Jaw / Chomp Animation */}
             <div 
                 className={`absolute w-1/2 h-1/4 bg-green-600 top-1/2 -translate-y-1/2 right-[-5%] rounded-r-sm transition-transform duration-100 ${isEating ? 'scale-y-150' : ''}`}
             ></div>
@@ -57,7 +56,6 @@ const SnakeBody: React.FC<{ segment: SnakeSegment }> = ({ segment }) => {
     return (
          <div className="absolute w-full h-full animate-pulse-slow" style={style}>
             <div className="absolute w-full h-full bg-green-500 rounded-md"></div>
-            {/* Scales texture */}
             <div className="absolute w-1/2 h-1/2 top-1/4 left-0 bg-black opacity-10 rounded-r-full"></div>
          </div>
     );
@@ -95,8 +93,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
         isGameOver,
         score,
         isEating,
+        isPaused,
         startGame,
         changeDirection,
+        togglePause,
     } = useSnakeGame();
 
     useEffect(() => {
@@ -115,8 +115,17 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
     
      useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (isGameOver || controlType !== 'keyboard') return;
+            if (isGameOver && e.key !== 'Enter') return;
+            if (controlType !== 'keyboard') return;
             
+            if (e.key === 'p' || e.key === 'Escape') {
+                e.preventDefault();
+                togglePause();
+                return;
+            }
+
+            if (isPaused) return;
+
             let dir: Direction | null = null;
             if (e.key === 'ArrowUp') dir = 'UP';
             else if (e.key === 'ArrowDown') dir = 'DOWN';
@@ -131,14 +140,14 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [controlType, isGameOver, changeDirection]);
+    }, [controlType, isGameOver, isPaused, changeDirection, togglePause]);
 
     
     useEffect(() => {
         if (controlType === 'keyboard' && gameAreaRef.current) {
             gameAreaRef.current.focus();
         }
-    }, [controlType, isGameOver]);
+    }, [controlType, isGameOver, isPaused]);
     
     const renderSnakeSegment = (segment: SnakeSegment, index: number) => {
         const isHead = index === 0;
@@ -194,7 +203,19 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                 <h1 className="text-lg md:text-5xl font-bold text-green-400 tracking-widest" style={{ textShadow: '0 0 10px #34d399, 0 0 20px #34d399' }}>
                     SNAKE
                 </h1>
-                <div className="w-8 md:w-10"></div>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <AudioPlayer src="/snake_music.mp3" isPlaying={!isGameOver && !isPaused} />
+                    <button onClick={togglePause} disabled={isGameOver} className="text-cyan-400 hover:text-white z-30 transition-transform duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Pause">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            {isPaused ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
+                            )}
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
             
             <div className="flex flex-row justify-center gap-8 my-4 w-full max-w-xs">
@@ -212,12 +233,10 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                         aspectRatio: '1 / 1',
                      }}
                 >
-                    {/* Background Grid */}
                      {Array.from({ length: boardSize * boardSize }).map((_, i) => (
                         <div key={i} className="bg-slate-900 opacity-80"></div>
                      ))}
                      
-                     {/* Game Objects rendered on top */}
                      <div className="absolute inset-0">
                         {snake.map(renderSnakeSegment)}
                         
@@ -245,7 +264,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
 
                      </div>
 
-
+                    {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
                     {isGameOver && (
                          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-10">
                             {score > 0 && (
@@ -266,11 +285,11 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
             </main>
              {controlType === 'keyboard' && (
                 <div className="absolute bottom-4 text-center text-slate-400 text-xs hidden md:block">
-                    <p><span className="font-bold text-green-400">CONTROLS:</span> <span className="font-bold">ARROW KEYS</span> - MOVE</p>
+                    <p><span className="font-bold text-green-400">CONTROLS:</span> <span className="font-bold">ARROW KEYS</span> - MOVE | <span className="font-bold">P/ESC</span> - PAUSE</p>
                     <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
              )}
-            {controlType === 'on-screen' && <SnakeControls onDirectionChange={changeDirection} isGameOver={isGameOver} />}
+            {controlType === 'on-screen' && <SnakeControls onDirectionChange={changeDirection} isGameOver={isGameOver || isPaused} />}
         </div>
     );
 };

@@ -41,6 +41,41 @@ const DoodleJumpIcon: React.FC = () => (
     </div>
 );
 
+const DiggerIcon: React.FC = () => (
+    <div className="relative w-12 h-12 md:w-16 md:h-16">
+        {/* Main Body */}
+        <div className="w-10/12 h-8/12 bg-yellow-400 absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-md border-t-2 border-l-2 border-yellow-200 shadow-md"></div>
+        {/* Tracks */}
+        <div className="w-full h-1/4 bg-gray-800 absolute bottom-0 rounded-b-sm border-t-2 border-gray-600"></div>
+        {/* Cabin */}
+        <div className="w-5/12 h-4/12 bg-sky-400 absolute top-2 left-1/2 -translate-x-[90%] border border-sky-600 rounded-sm flex items-center justify-center">
+            <div className="w-1 h-1 bg-white rounded-full opacity-75"></div> {/* Headlight */}
+        </div>
+        {/* Cutter */}
+        <div className="w-7/12 h-4/12 bg-gray-600 absolute bottom-[22%] right-[-15%] rounded-md flex items-center justify-around border-2 border-gray-700">
+             <div className="w-px h-full bg-gray-800"></div>
+             <div className="w-full h-px bg-gray-800"></div>
+        </div>
+        {/* Exhaust pipe */}
+        <div className="w-1 h-2 bg-gray-600 absolute top-2 left-2 border-r-2 border-b-2 border-gray-700"></div>
+    </div>
+);
+
+const XonixIcon: React.FC = () => (
+    <div className="relative w-12 h-12 md:w-16 md:h-16 border-2 border-cyan-500 p-1">
+        {/* Filled Area */}
+        <div className="absolute top-0 left-0 w-1/4 h-full bg-cyan-500 opacity-50"></div>
+        {/* Ball */}
+        <div className="absolute w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full top-1/2 left-1/2"></div>
+        {/* Drawing Line */}
+        <div className="absolute top-0 right-1/4 w-px h-1/2 bg-orange-400"></div>
+        <div className="absolute top-1/2 right-1/4 w-1/4 h-px bg-orange-400"></div>
+        {/* Player Cursor */}
+        <div className="absolute w-1.5 h-1.5 md:w-2 md:h-2 bg-orange-400 top-1/2 right-1/4 -translate-y-1/2"></div>
+    </div>
+);
+
+
 const GameCard: React.FC<{
     title: string; 
     onClick: () => void; 
@@ -89,6 +124,16 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }) => {
                     title="Doodle Jump" 
                     icon={<DoodleJumpIcon />}
                     onClick={() => onSelect('doodlejump')}
+                />
+                <GameCard
+                    title="Digger"
+                    icon={<DiggerIcon />}
+                    onClick={() => onSelect('digger')}
+                />
+                 <GameCard
+                    title="Xonix"
+                    icon={<XonixIcon />}
+                    onClick={() => onSelect('xonix')}
                 />
             </div>
         </div>

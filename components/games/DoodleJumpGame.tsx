@@ -1,9 +1,11 @@
-'use client';
+
 import React, { useEffect, useRef } from 'react';
 import { useDoodleJump } from '../../hooks/useDoodleJump';
 import Leaderboard from '../Leaderboard';
 import GameStats from '../GameStats';
 import DoodleJumpControls from '../DoodleJumpControls';
+import PauseModal from '../PauseModal';
+import AudioPlayer from '../AudioPlayer';
 
 interface DoodleJumpGameProps {
     playerName: string;
@@ -12,14 +14,13 @@ interface DoodleJumpGameProps {
 }
 
 const DoodlerCharacter: React.FC<{ doodler: ReturnType<typeof useDoodleJump>['doodler'] }> = ({ doodler }) => {
-    // Squash and stretch animation based on vertical velocity
     const getDoodlerSquashStyle = (vy: number) => {
         let scaleX = 1;
         let scaleY = 1;
-        if (vy < -8) { // Jumping hard
+        if (vy < -8) {
             scaleX = 1.2;
             scaleY = 0.8;
-        } else if (vy > 8) { // Falling fast
+        } else if (vy > 8) {
             scaleX = 0.8;
             scaleY = 1.2;
         }
@@ -41,11 +42,8 @@ const DoodlerCharacter: React.FC<{ doodler: ReturnType<typeof useDoodleJump>['do
                 className="relative w-full h-full"
                 style={getDoodlerSquashStyle(doodler.vy)}
             >
-                {/* Body */}
                 <div className="absolute w-full h-full bg-green-400 rounded-t-full rounded-b-2xl border-2 border-green-600"></div>
-                {/* Nozzle */}
                 <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-400 rounded-b-md border-2 border-gray-600"></div>
-                {/* Eyes */}
                 <div className="absolute w-3 h-3 bg-white rounded-full top-4 left-3 border border-black">
                     <div className="absolute w-1.5 h-1.5 bg-black rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
                 </div>
@@ -65,10 +63,12 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
         score,
         highScore,
         isGameOver,
+        isPaused,
         totalScroll,
         gameWidth,
         gameHeight,
         startGame,
+        togglePause,
         moveLeft,
         moveRight,
         stopMoving,
@@ -80,10 +80,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
 
      useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
-            const newScoreEntry = { name: playerName, score };
-            // Since Doodle Jump is a single high score game, we just check against the one.
             if (score > highScore) {
-                // The hook handles saving to localStorage, this is for display
                  console.log("New high score!");
             }
         }
@@ -91,6 +88,16 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            if (isGameOver && e.key !== 'Enter') return;
+
+            if (e.key === 'p' || e.key === 'Escape') {
+                e.preventDefault();
+                togglePause();
+                return;
+            }
+
+            if (isPaused) return;
+
             if (e.key === 'ArrowLeft') moveLeft();
             if (e.key === 'ArrowRight') moveRight();
             if (e.key === ' ') {
@@ -114,13 +121,13 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 window.removeEventListener('keyup', handleKeyUp);
             }
         }
-    }, [controlType, moveLeft, moveRight, stopMoving, holdJump, releaseJump]);
+    }, [controlType, moveLeft, moveRight, stopMoving, holdJump, releaseJump, isGameOver, isPaused, togglePause]);
     
      useEffect(() => {
         if (controlType === 'keyboard' && gameAreaRef.current) {
             gameAreaRef.current.focus();
         }
-    }, [controlType, isGameOver]);
+    }, [controlType, isGameOver, isPaused]);
 
 
     return (
@@ -139,7 +146,19 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 <h1 className="text-lg md:text-5xl font-bold text-yellow-400 tracking-widest" style={{ textShadow: '0 0 10px #facc15, 0 0 20px #facc15' }}>
                     DOODLE JUMP
                 </h1>
-                <div className="w-8 md:w-10"></div>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <AudioPlayer src="/doodlejump_music.mp3" isPlaying={!isGameOver && !isPaused} />
+                    <button onClick={togglePause} disabled={isGameOver} className="text-cyan-400 hover:text-white z-30 transition-transform duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Pause">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            {isPaused ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M10 9v6m4-6v6" />
+                            )}
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-row justify-center gap-8 my-4 w-full max-w-xs">
@@ -147,7 +166,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-32 md:pb-0">
+            <main className="relative flex items-center justify-center w-full flex-grow pb-36 md:pb-0">
                 <div 
                     className="relative bg-slate-700 rounded-lg shadow-inner shadow-black overflow-hidden bg-repeat"
                     style={{
@@ -163,7 +182,6 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 >
                     <DoodlerCharacter doodler={doodler} />
 
-                    {/* Platforms */}
                     {platforms.map((platform, i) => (
                         <div 
                             key={i}
@@ -177,6 +195,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                         />
                     ))}
 
+                    {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
                     {isGameOver && (
                          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4">
                             {score > 0 && (
@@ -197,11 +216,11 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
             </main>
              {controlType === 'keyboard' && (
                 <div className="absolute bottom-4 text-center text-slate-400 text-xs hidden md:block">
-                    <p><span className="font-bold text-yellow-400">CONTROLS:</span> <span className="font-bold">ARROWS</span> - MOVE | <span className="font-bold">SPACE</span> - BOOST JUMP</p>
+                    <p><span className="font-bold text-yellow-400">CONTROLS:</span> <span className="font-bold">ARROWS</span> - MOVE | <span className="font-bold">SPACE</span> - BOOST JUMP | <span className="font-bold">P/ESC</span> - PAUSE</p>
                      <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
              )}
-            {controlType === 'on-screen' && <DoodleJumpControls onMoveLeft={moveLeft} onMoveRight={moveRight} onStop={stopMoving} isGameOver={isGameOver} onHoldJump={holdJump} onReleaseJump={releaseJump}/>}
+            {controlType === 'on-screen' && <DoodleJumpControls onMoveLeft={moveLeft} onMoveRight={moveRight} onStop={stopMoving} isGameOver={isGameOver || isPaused} onHoldJump={holdJump} onReleaseJump={releaseJump}/>}
         </div>
     );
 };

@@ -1,5 +1,6 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+
+import { useState, useCallback } from 'react';
 import type { BoardGrid, Player, TetrominoShape } from '../types';
 import { BOARD_WIDTH, createBoard, TETROMINOS, POINTS, LINES_PER_LEVEL } from '../constants';
 import { useInterval } from './useInterval';
@@ -12,6 +13,7 @@ interface GameState {
     level: number;
     lines: number;
     isGameOver: boolean;
+    isPaused: boolean;
     dropTime: number | null;
 }
 
@@ -29,13 +31,13 @@ const createInitialGameState = (): GameState => ({
     level: 0,
     lines: 0,
     isGameOver: true,
+    isPaused: false,
     dropTime: null,
 });
 
-
 export const useGame = () => {
     const [gameState, setGameState] = useState<GameState>(createInitialGameState());
-    const { board, player, nextPiece, score, level, lines, isGameOver, dropTime } = gameState;
+    const { board, player, nextPiece, score, level, lines, isGameOver, isPaused } = gameState;
 
     const randomTetrominoKey = useCallback(() => {
         const tetrominos = 'IJLOSTZ';
@@ -48,12 +50,12 @@ export const useGame = () => {
                 if (p.tetromino.shape[y][x] !== 0) {
                     const boardY = y + p.pos.y;
                     const boardX = x + p.pos.x;
-
-                    if (boardX < 0 || boardX >= b[0].length || boardY >= b.length) {
-                        return true;
-                    }
-                    
-                    if (boardY >= 0 && b[boardY][boardX] !== 0) {
+                    if (
+                        boardX < 0 ||
+                        boardX >= b[0].length ||
+                        boardY >= b.length ||
+                        (boardY >= 0 && b[boardY][boardX] !== 0)
+                    ) {
                         return true;
                     }
                 }
@@ -61,6 +63,26 @@ export const useGame = () => {
         }
         return false;
     };
+
+    const resetPlayer = useCallback(() => {
+        const newNextPiece = randomTetrominoKey();
+        const newPlayer: Player = {
+            pos: { x: BOARD_WIDTH / 2 - 1, y: 0 },
+            tetromino: TETROMINOS[nextPiece],
+            collided: false,
+        };
+
+        if (checkCollision(newPlayer, board)) {
+            setGameState(prev => ({ ...prev, isGameOver: true, dropTime: null }));
+            return;
+        }
+
+        setGameState(prev => ({
+            ...prev,
+            player: newPlayer,
+            nextPiece: newNextPiece,
+        }));
+    }, [board, nextPiece, randomTetrominoKey]);
 
     const startGame = useCallback(() => {
         const firstPieceKey = randomTetrominoKey();
@@ -77,13 +99,25 @@ export const useGame = () => {
             level: 0,
             lines: 0,
             isGameOver: false,
+            isPaused: false,
             dropTime: 1000,
         });
     }, [randomTetrominoKey]);
 
-    const movePlayer = useCallback((dir: number) => {
+    const togglePause = useCallback(() => {
         setGameState(prev => {
             if (prev.isGameOver) return prev;
+            if (prev.isPaused) {
+                return { ...prev, isPaused: false, dropTime: 1000 / (prev.level + 1) + 200 };
+            } else {
+                return { ...prev, isPaused: true, dropTime: null };
+            }
+        });
+    }, []);
+
+    const movePlayer = useCallback((dir: number) => {
+        setGameState(prev => {
+            if (prev.isGameOver || prev.isPaused) return prev;
             const movedPlayer = { ...prev.player, pos: { ...prev.player.pos, x: prev.player.pos.x + dir } };
             if (!checkCollision(movedPlayer, prev.board)) {
                 return { ...prev, player: movedPlayer };
@@ -91,25 +125,25 @@ export const useGame = () => {
             return prev;
         });
     }, []);
-    
+
     const rotate = (matrix: TetrominoShape): TetrominoShape => {
-        const rotated = matrix.map((_, index) => matrix.map(col => col[index]));
-        return rotated.map(row => row.reverse());
+        const rotatedMatrix = matrix.map((_, index) => matrix.map(col => col[index]));
+        return rotatedMatrix.map(row => row.reverse());
     };
 
     const rotatePlayer = useCallback(() => {
         setGameState(prev => {
-            if (prev.isGameOver) return prev;
-
+            if (prev.isGameOver || prev.isPaused) return prev;
             const clonedPlayer = JSON.parse(JSON.stringify(prev.player));
             clonedPlayer.tetromino.shape = rotate(clonedPlayer.tetromino.shape);
 
+            const pos = clonedPlayer.pos.x;
             let offset = 1;
-            while(checkCollision(clonedPlayer, prev.board)) {
+            while (checkCollision(clonedPlayer, prev.board)) {
                 clonedPlayer.pos.x += offset;
                 offset = -(offset + (offset > 0 ? 1 : -1));
-                if(offset > clonedPlayer.tetromino.shape[0].length) {
-                    return prev; 
+                if (offset > clonedPlayer.tetromino.shape[0].length) {
+                    return prev;
                 }
             }
             return { ...prev, player: clonedPlayer };
@@ -118,186 +152,99 @@ export const useGame = () => {
 
     const drop = useCallback(() => {
         setGameState(prev => {
-            if (prev.isGameOver) {
-                return prev;
+            if (prev.isGameOver || prev.isPaused) return prev;
+            const movedPlayer = { ...prev.player, pos: { ...prev.player.pos, y: prev.player.pos.y + 1 } };
+            if (!checkCollision(movedPlayer, prev.board)) {
+                return { ...prev, player: movedPlayer };
             }
-            // Check for collision one step below
-            if (checkCollision({ ...prev.player, pos: { ...prev.player.pos, y: prev.player.pos.y + 1 } }, prev.board)) {
-                // Game over condition
-                if (prev.player.pos.y < 1) {
-                    return { ...prev, isGameOver: true, dropTime: null };
-                }
-
-                // Lock piece onto board
-                const newBoard = prev.board.map(row => row.slice());
-                prev.player.tetromino.shape.forEach((row, y) => {
-                    row.forEach((value, x) => {
-                        if (value !== 0) {
-                            newBoard[y + prev.player.pos.y][x + prev.player.pos.x] = prev.player.tetromino.color;
-                        }
-                    });
-                });
-                
-                // Check for cleared lines
-                let rowsCleared = 0;
-                const sweptBoard = newBoard.reduce((acc, row) => {
-                    if (row.every(cell => cell !== 0)) {
-                        rowsCleared += 1;
-                        acc.unshift(Array(BOARD_WIDTH).fill(0));
-                        return acc;
-                    }
-                    acc.push(row);
-                    return acc;
-                }, [] as BoardGrid);
-
-                let newScore = prev.score;
-                let newLines = prev.lines;
-
-                if (rowsCleared > 0) {
-                    newLines += rowsCleared;
-                    switch(rowsCleared) {
-                        case 1: newScore += POINTS.SINGLE * (prev.level + 1); break;
-                        case 2: newScore += POINTS.DOUBLE * (prev.level + 1); break;
-                        case 3: newScore += POINTS.TRIPLE * (prev.level + 1); break;
-                        case 4: newScore += POINTS.TETRIS * (prev.level + 1); break;
-                    }
-                }
-                const newLevel = Math.floor(newLines / LINES_PER_LEVEL);
-                const newDropTime = newLevel > prev.level ? (1000 / (newLevel + 1) + 200) : prev.dropTime;
-
-                const newPlayerTetromino = TETROMINOS[prev.nextPiece];
-                const newPlayer = {
-                    pos: { x: BOARD_WIDTH / 2 - 1, y: 0 },
-                    tetromino: newPlayerTetromino,
-                    collided: false,
-                };
-                
-                if (checkCollision(newPlayer, sweptBoard)) {
-                     return { ...prev, board: sweptBoard, score: newScore, lines: newLines, level: newLevel, isGameOver: true, dropTime: null };
-                }
-
-                return {
-                    ...prev,
-                    board: sweptBoard,
-                    player: newPlayer,
-                    nextPiece: randomTetrominoKey(),
-                    score: newScore,
-                    lines: newLines,
-                    level: newLevel,
-                    dropTime: newDropTime,
-                };
-            }
-            
-            // No collision, just move down
-            return {
-                ...prev,
-                player: { ...prev.player, pos: { ...prev.player.pos, y: prev.player.pos.y + 1 } },
-                score: prev.score + POINTS.SOFT_DROP
-            };
+            return { ...prev, player: { ...prev.player, collided: true } };
         });
-    }, [randomTetrominoKey]);
+    }, []);
 
     const dropPlayer = useCallback(() => {
         setGameState(prev => {
-            if (prev.isGameOver || prev.dropTime === null) return prev;
-            return {...prev, dropTime: null}
+            if (prev.isGameOver || prev.isPaused) return prev;
+             // Temporarily speed up drop for one tick, will be reset by timeout
+            return { ...prev, score: prev.score + POINTS.SOFT_DROP, dropTime: 50 };
         });
+        setTimeout(() => {
+            setGameState(prev => {
+                if (!prev.isPaused && !prev.isGameOver) {
+                    return { ...prev, dropTime: 1000 / (prev.level + 1) + 200 };
+                }
+                return prev;
+            });
+        }, 50);
         drop();
     }, [drop]);
-    
-    useEffect(() => {
-        if (!isGameOver && dropTime === null) {
-            setGameState(prev => {
-                if (prev.isGameOver) return prev;
-                return { ...prev, dropTime: 1000 / (prev.level + 1) + 200 }
-            });
-        }
-    }, [isGameOver, dropTime, level]);
 
     const hardDropPlayer = useCallback(() => {
         setGameState(prev => {
-            if (prev.isGameOver) return prev;
-
+            if (prev.isGameOver || prev.isPaused) return prev;
             let tempPlayer = { ...prev.player };
-            let dropPoints = 0;
+            let dropCount = 0;
             while (!checkCollision({ ...tempPlayer, pos: { ...tempPlayer.pos, y: tempPlayer.pos.y + 1 } }, prev.board)) {
                 tempPlayer.pos.y += 1;
-                dropPoints += POINTS.HARD_DROP;
+                dropCount += 1;
             }
-            
-            const newBoard = prev.board.map(row => row.slice());
-            tempPlayer.tetromino.shape.forEach((row, y) => {
-                row.forEach((value, x) => {
-                    if (value !== 0) {
-                        newBoard[y + tempPlayer.pos.y][x + tempPlayer.pos.x] = tempPlayer.tetromino.color;
-                    }
-                });
+            return { ...prev, player: { ...tempPlayer, collided: true }, score: prev.score + dropCount * POINTS.HARD_DROP };
+        });
+    }, []);
+
+    const updateBoard = (p: Player): BoardGrid => {
+        const newBoard = board.map(row => row.slice());
+        p.tetromino.shape.forEach((row, y) => {
+            row.forEach((value, x) => {
+                if (value !== 0) {
+                    newBoard[y + p.pos.y][x + p.pos.x] = p.tetromino.color;
+                }
             });
+        });
 
-            let rowsCleared = 0;
-            const sweptBoard = newBoard.reduce((acc, row) => {
-                if (row.every(cell => cell !== 0)) {
-                    rowsCleared += 1;
-                    acc.unshift(Array(BOARD_WIDTH).fill(0));
-                    return acc;
-                }
-                acc.push(row);
-                return acc;
-            }, [] as BoardGrid);
-
-            let newScore = prev.score + dropPoints;
-            let newLines = prev.lines;
-
-            if (rowsCleared > 0) {
-                newLines += rowsCleared;
-                switch(rowsCleared) {
-                    case 1: newScore += POINTS.SINGLE * (prev.level + 1); break;
-                    case 2: newScore += POINTS.DOUBLE * (prev.level + 1); break;
-                    case 3: newScore += POINTS.TRIPLE * (prev.level + 1); break;
-                    case 4: newScore += POINTS.TETRIS * (prev.level + 1); break;
-                }
+        let rowsSwept = 0;
+        const sweptBoard = newBoard.reduce((ack, row) => {
+            if (row.every(cell => cell !== 0)) {
+                rowsSwept += 1;
+                ack.unshift(new Array(newBoard[0].length).fill(0));
+                return ack;
             }
+            ack.push(row);
+            return ack;
+        }, [] as BoardGrid);
+
+        if (rowsSwept > 0) {
+            const linePoints = [0, POINTS.SINGLE, POINTS.DOUBLE, POINTS.TRIPLE, POINTS.TETRIS];
+            const newLines = lines + rowsSwept;
             const newLevel = Math.floor(newLines / LINES_PER_LEVEL);
-            const newDropTime = newLevel > prev.level ? (1000 / (newLevel + 1) + 200) : prev.dropTime;
-            
-            const newPlayerTetromino = TETROMINOS[prev.nextPiece];
-            const newPlayer = {
-                pos: { x: BOARD_WIDTH / 2 - 1, y: 0 },
-                tetromino: newPlayerTetromino,
-                collided: false,
-            };
-
-            if (checkCollision(newPlayer, sweptBoard)) {
-                 return { ...prev, board: sweptBoard, score: newScore, lines: newLines, level: newLevel, isGameOver: true, dropTime: null };
-            }
-
-            return {
+            setGameState(prev => ({
                 ...prev,
-                board: sweptBoard,
-                player: newPlayer,
-                nextPiece: randomTetrominoKey(),
-                score: newScore,
+                score: prev.score + linePoints[rowsSwept] * (prev.level + 1),
                 lines: newLines,
                 level: newLevel,
-                dropTime: newDropTime,
-            };
-        });
-    }, [randomTetrominoKey]);
+                dropTime: 1000 / (newLevel + 1) + 200,
+            }));
+        }
 
-    useInterval(drop, dropTime);
-    
+        return sweptBoard;
+    };
+
+    useInterval(() => {
+        if (player.collided) {
+            setGameState(prev => ({ ...prev, board: updateBoard(prev.player) }));
+            resetPlayer();
+        } else {
+            drop();
+        }
+    }, gameState.dropTime);
+
+
     return {
-        board,
-        player,
-        nextPiece,
-        score,
-        level,
-        lines,
-        isGameOver,
+        ...gameState,
         startGame,
         movePlayer,
         rotatePlayer,
         dropPlayer,
         hardDropPlayer,
+        togglePause
     };
 };

@@ -1,5 +1,6 @@
+
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Geist, Geist_Mono, Press_Start_2P } from 'next/font/google';
 import './global.css';
 
 const geistSans = Geist({
@@ -10,10 +11,14 @@ const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
 });
-
+const pressStart2P = Press_Start_2P({
+    weight: [ '400'],
+  style: [ 'normal'],
+  variable: '--font-press-start-2p',
+  subsets: ['latin'],
+});
 export const metadata: Metadata = {
-   manifest: '/site.webmanifest', 
-    metadataBase:new URL('https://arcade-games-rho.vercel.app/'),
+   manifest: '/site.webmanifest',  
     title: 'Oldfashioned Arcade Games',
    description:
     'A collection of classic arcade games built with React. Choose your controls and aim for the high score in games like Tetris and Snake!',
@@ -51,8 +56,12 @@ export default function RootLayout({
         type="image/<generated>"
         sizes="<generated>"
       />
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+         
+      <body  suppressHydrationWarning={true}
+      style={{
+        fontFamily: 'pressStart2P, sans-serif',
+      }}
+        className={`${geistSans.variable} ${geistMono.variable} ${pressStart2P.variable} antialiased`}
       >
         {children}
       </body>

@@ -33,14 +33,13 @@ export const useDoodleJump = () => {
     const [highScore, setHighScore] = useState(0);
     const [isGameOver, setIsGameOver] = useState(true);
     const [totalScroll, setTotalScroll] = useState(0);
+    const [isPaused, setIsPaused] = useState(false);
 
     const leftPressed = useRef(false);
     const rightPressed = useRef(false);
     const jumpHeld = useRef(false);
-    // FIX: Changed useRef call to provide an explicit initial value of undefined, as calling it with no arguments was causing an error.
     const gameLoopRef = useRef<number | undefined>(undefined);
     
-    // Refs to hold current state for the game loop to prevent stale closures
     const doodlerRef = useRef(doodler);
     useEffect(() => { doodlerRef.current = doodler; }, [doodler]);
     const platformsRef = useRef(platforms);
@@ -49,6 +48,8 @@ export const useDoodleJump = () => {
     useEffect(() => { scoreRef.current = score; }, [score]);
     const isGameOverRef = useRef(isGameOver);
     useEffect(() => { isGameOverRef.current = isGameOver; }, [isGameOver]);
+    const isPausedRef = useRef(isPaused);
+    useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
     const getDifficultySettings = (currentScore: number) => {
         if (currentScore > 4000) { // Very Hard
@@ -91,7 +92,6 @@ export const useDoodleJump = () => {
         const newPlatforms: Platform[] = [];
         const { platformWidth } = getDifficultySettings(0); // Initial platforms are always easy
         
-        // Starting platform
         newPlatforms.push({
             x: GAME_WIDTH / 2 - platformWidth / 2,
             y: GAME_HEIGHT - 50,
@@ -112,6 +112,7 @@ export const useDoodleJump = () => {
 
     const startGame = useCallback(() => {
         setIsGameOver(false);
+        setIsPaused(false);
         setScore(0);
         setTotalScroll(0);
         setPlatforms(createPlatforms());
@@ -128,11 +129,18 @@ export const useDoodleJump = () => {
         setHighScore(parseInt(localStorage.getItem('doodlejump_high_score') || '0', 10));
     }, [createPlatforms]);
     
+    const togglePause = useCallback(() => {
+        if (isGameOver) return;
+        setIsPaused(p => !p);
+    }, [isGameOver]);
+
     const moveLeft = () => {
+        if (isPaused) return;
         leftPressed.current = true;
         rightPressed.current = false;
     };
     const moveRight = () => {
+        if (isPaused) return;
         rightPressed.current = true;
         leftPressed.current = false;
     };
@@ -140,58 +148,53 @@ export const useDoodleJump = () => {
         leftPressed.current = false;
         rightPressed.current = false;
     };
-    const holdJump = () => { jumpHeld.current = true; };
-    const releaseJump = () => { jumpHeld.current = false; };
+    const holdJump = () => {
+        if (isPaused) return;
+        jumpHeld.current = true;
+    };
+    const releaseJump = () => {
+        jumpHeld.current = false;
+    };
 
 
     const gameLoop = useCallback(() => {
-        if (isGameOverRef.current) return;
+        if (isGameOverRef.current || isPausedRef.current) return;
 
-        // Get current state from refs for calculation
         let nextDoodler = { ...doodlerRef.current };
         let nextPlatforms = [...platformsRef.current];
         let nextScore = scoreRef.current;
         
-        // --- Physics and Movement ---
-        // Horizontal movement with acceleration
         if (leftPressed.current) {
             nextDoodler.vx -= PLAYER_HORIZONTAL_ACCELERATION;
         } else if (rightPressed.current) {
             nextDoodler.vx += PLAYER_HORIZONTAL_ACCELERATION;
         } else {
-            nextDoodler.vx *= FRICTION; // Apply friction
+            nextDoodler.vx *= FRICTION;
         }
 
-        // Clamp speed
         nextDoodler.vx = Math.max(-MAX_HORIZONTAL_SPEED, Math.min(MAX_HORIZONTAL_SPEED, nextDoodler.vx));
         
-        // Update direction
         if (nextDoodler.vx > 0.1) nextDoodler.direction = 'right';
         if (nextDoodler.vx < -0.1) nextDoodler.direction = 'left';
 
-        // Stop if slow and no input
         if (!leftPressed.current && !rightPressed.current && Math.abs(nextDoodler.vx) < 0.1) {
             nextDoodler.vx = 0;
         }
         
         nextDoodler.x += nextDoodler.vx;
 
-        // Vertical movement
         nextDoodler.vy += GRAVITY;
         nextDoodler.y += nextDoodler.vy;
         
-        // Screen wrap
         if (nextDoodler.x > GAME_WIDTH) {
             nextDoodler.x = -PLAYER_WIDTH;
         } else if (nextDoodler.x + PLAYER_WIDTH < 0) {
             nextDoodler.x = GAME_WIDTH;
         }
 
-        // --- Collision, Scrolling, and State Updates ---
         let scrollOffset = 0;
         const currentDifficulty = getDifficultySettings(nextScore);
 
-        // Collision Detection
         if (nextDoodler.vy > 0) {
             for (const platform of nextPlatforms) {
                 if (
@@ -208,13 +211,11 @@ export const useDoodleJump = () => {
             }
         }
         
-        // Vertical Scrolling
         if (nextDoodler.y < GAME_HEIGHT / 2 && nextDoodler.vy < 0) {
             scrollOffset = (GAME_HEIGHT / 2) - nextDoodler.y;
             nextDoodler.y = GAME_HEIGHT / 2;
         }
         
-        // Apply scrolling to platforms and generate new ones
         if (scrollOffset > 0) {
             const { scoreMultiplier, platformWidth, minGap, maxGap } = currentDifficulty;
 
@@ -242,12 +243,10 @@ export const useDoodleJump = () => {
             nextPlatforms = visiblePlatforms;
         }
         
-        // Update all state at the end of the loop
         setDoodler(nextDoodler);
         setPlatforms(nextPlatforms);
         setScore(nextScore);
 
-        // --- Game Over Check ---
         if (nextDoodler.y > GAME_HEIGHT) {
             setIsGameOver(true);
             if (nextScore > highScore) {
@@ -260,8 +259,7 @@ export const useDoodleJump = () => {
     }, [highScore]);
 
     useEffect(() => {
-        if (!isGameOver) {
-            // Stop any previous loop
+        if (!isGameOver && !isPaused) {
             if (gameLoopRef.current) cancelAnimationFrame(gameLoopRef.current);
             gameLoopRef.current = requestAnimationFrame(gameLoop);
         }
@@ -270,7 +268,7 @@ export const useDoodleJump = () => {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [isGameOver, gameLoop]);
+    }, [isGameOver, isPaused, gameLoop]);
 
     return {
         doodler,
@@ -278,10 +276,12 @@ export const useDoodleJump = () => {
         score,
         highScore,
         isGameOver,
+        isPaused,
         totalScroll,
         gameWidth: GAME_WIDTH,
         gameHeight: GAME_HEIGHT,
         startGame,
+        togglePause,
         moveLeft,
         moveRight,
         stopMoving,
@@ -289,3 +289,4 @@ export const useDoodleJump = () => {
         releaseJump,
     };
 };
+
