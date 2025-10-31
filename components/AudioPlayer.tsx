@@ -52,7 +52,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isPlaying }) => {
     };
 
     return (
-        <div className="hidden md:flex items-center gap-2">
+        <div className=" md:flex items-center gap-2">
             <audio ref={audioRef} src={src} loop muted={isMuted} />
             <button onClick={toggleMute} className="text-cyan-400 hover:text-white transition-transform duration-200 hover:scale-110" aria-label={isMuted ? "Unmute" : "Mute"}>
                 {isMuted || volume === 0 ? <VolumeOffIcon /> : <VolumeOnIcon />}
@@ -64,7 +64,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isPlaying }) => {
                 step="0.01" 
                 value={volume}
                 onChange={handleVolumeChange}
-                className="w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                className="hidden md:flex  w-20 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                 aria-label="Volume"
             />
         </div>

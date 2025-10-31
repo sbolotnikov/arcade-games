@@ -73,6 +73,11 @@ export interface DiggerBulletState {
     direction: Direction;
 }
 
+export interface DiggerEmeraldState {
+  x: number;
+  y: number;
+}
+
 // Xonix Types
 export type XonixGridCell = 'BORDER' | 'FILLED' | 'EMPTY' | 'LINE';
 export type XonixGrid = XonixGridCell[][];

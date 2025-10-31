@@ -166,7 +166,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-36 md:pb-0">
+            <main className="relative flex items-center justify-center w-full grow pb-36 md:pb-0">
                 <div 
                     className="relative bg-slate-700 rounded-lg shadow-inner shadow-black overflow-hidden bg-repeat"
                     style={{
