@@ -1,22 +1,19 @@
 
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono, Press_Start_2P } from 'next/font/google';
+import type { Metadata } from 'next'; 
 import './global.css';
+import localFont from 'next/font/local'; 
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+const arcadeClassic = localFont({
+  src: [
+    {
+      path: './fonts/pixeloid_sans_bold.ttf',
+      weight: '700',
+    },
+    
+  ],
+  variable: '--font-ArcadeClassic',
 });
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
-const pressStart2P = Press_Start_2P({
-    weight: [ '400'],
-  style: [ 'normal'],
-  variable: '--font-press-start-2p',
-  subsets: ['latin'],
-});
+ 
 export const metadata: Metadata = {
    manifest: '/site.webmanifest',  
     title: 'Oldfashioned Arcade Games',
@@ -57,11 +54,8 @@ export default function RootLayout({
         sizes="<generated>"
       />
          
-      <body  suppressHydrationWarning={true}
-      style={{
-        fontFamily: 'pressStart2P, sans-serif',
-      }}
-        className={`${geistSans.variable} ${geistMono.variable} ${pressStart2P.variable} antialiased`}
+      <body suppressHydrationWarning={true}
+        className={`${arcadeClassic.variable} antialiased`}
       >
         {children}
       </body>
