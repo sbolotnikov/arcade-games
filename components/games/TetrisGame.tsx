@@ -1,6 +1,6 @@
-'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../hooks/useGame';
+import { useHighScores } from '../../hooks/useHighScores';
 import Board from '../Board';
 import GameStats from '../GameStats';
 import NextPiece from '../NextPiece';
@@ -22,10 +22,7 @@ interface TetrisGameProps {
 }
 
 const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack }) => {
-    const [highScores, setHighScores] = useState<Score[]>(() => {
-        const savedScores = localStorage.getItem('tetris_high_scores');
-        return savedScores ? JSON.parse(savedScores) : [];
-    });
+    const { scores: highScores, highScore, saveScore } = useHighScores('tetris');
     
     const gameAreaRef = useRef<HTMLDivElement>(null);
 
@@ -48,17 +45,9 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
     
     useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
-            const newScoreEntry = { name: playerName, score: score };
-            const updatedScores = [...highScores, newScoreEntry]
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 5);
-
-            if (JSON.stringify(updatedScores) !== JSON.stringify(highScores)) {
-                setHighScores(updatedScores);
-                localStorage.setItem('tetris_high_scores', JSON.stringify(updatedScores));
-            }
+            saveScore(playerName, score);
         }
-    }, [isGameOver, score, playerName, highScores]);
+    }, [isGameOver, score, playerName, saveScore]);
 
     useEffect(() => {
         if (controlType === 'keyboard' && gameAreaRef.current) {
@@ -142,7 +131,7 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                 </div>
                 <div className="w-5/6 md:w-full flex flex-row justify-around items-center bg-slate-800 rounded-md p-1 md:flex-col md:justify-start md:items-stretch md:bg-transparent md:p-0 md:rounded-none md:gap-1">
                     <GameStats title="SCORE" value={score} />
-                    <GameStats title="HIGH SCORE" value={highScores.length > 0 ? highScores[0].score : 0} />
+                    <GameStats title="HIGH SCORE" value={highScore} />
                     <GameStats title="LEVEL" value={level} />
                     <GameStats title="LINES" value={lines} />
                 </div>

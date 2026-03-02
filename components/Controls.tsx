@@ -1,4 +1,4 @@
-'use client';
+
 import React, { useState } from 'react';
 
 interface ControlsProps {
@@ -97,7 +97,7 @@ const Controls: React.FC<ControlsProps> = ({ movePlayer, rotatePlayer, dropPlaye
     };
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-center gap-1 z-10 md:hidden">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-center gap-1 z-10">
             <button className={buttonClasses} onTouchStart={handleMove(-1)} onMouseDown={handleMove(-1)} disabled={isGameOver} aria-label="Move Left">
                 <ArrowIcon rotation={180} />
             </button>

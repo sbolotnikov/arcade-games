@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 
 interface GameSelectionProps {
@@ -76,6 +75,23 @@ const XonixIcon: React.FC = () => (
 );
 
 
+
+const ArkanoidIcon: React.FC = () => (
+    <div className="relative w-12 h-12 md:w-16 md:h-16 border-2 border-sky-500 p-1 flex flex-col justify-between">
+        <div className="grid grid-cols-4 gap-1">
+            <div className="h-2 bg-red-500"></div>
+            <div className="h-2 bg-orange-500"></div>
+            <div className="h-2 bg-yellow-500"></div>
+            <div className="h-2 bg-green-500"></div>
+        </div>
+        <div className="flex justify-center mb-4">
+            <div className="w-2 h-2 bg-white rounded-full"></div>
+        </div>
+        <div className="h-2 w-8 bg-sky-400 mx-auto rounded-sm"></div>
+    </div>
+);
+
+
 const GameCard: React.FC<{
     title: string; 
     onClick: () => void; 
@@ -134,6 +150,12 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }) => {
                     title="Xonix"
                     icon={<XonixIcon />}
                     onClick={() => onSelect('xonix')}
+                />
+                 
+                <GameCard
+                    title="Arkanoid"
+                    icon={<ArkanoidIcon />}
+                    onClick={() => onSelect('arkanoid')}
                 />
             </div>
         </div>

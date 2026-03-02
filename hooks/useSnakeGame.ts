@@ -1,4 +1,3 @@
-'use client';
 import { useState, useCallback } from 'react';
 import type { Snake, Food, Direction, Obstacle, SnakeSegment } from '../types';
 import { useInterval } from './useInterval';
@@ -9,7 +8,7 @@ const SPEED_INCREMENT = 2; // Slower speed increase
 
 // --- Helper Functions ---
 const getValidRandomCoordinate = (snake: Snake, food: Food[], obstacles: Obstacle[]): Food => {
-    let newFoodPosition: Food;
+    let newFoodPosition;
     do {
         newFoodPosition = {
             x: Math.floor(Math.random() * BOARD_SIZE),

@@ -1,4 +1,4 @@
-'use client';
+
 import React from 'react';
 
 interface DoodleJumpControlsProps {
@@ -43,7 +43,7 @@ const DoodleJumpControls: React.FC<DoodleJumpControlsProps> = ({ onMoveLeft, onM
     };
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-between z-10 md:hidden">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-between z-10">
             <div className="flex gap-4">
                 <button
                     className={moveButtonClasses}

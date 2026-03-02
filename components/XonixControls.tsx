@@ -1,5 +1,3 @@
-'use client';
-
 
 import React from 'react';
 import type { Direction } from '../types';
@@ -33,7 +31,7 @@ const XonixControls: React.FC<XonixControlsProps> = ({ onDirectionChange, isGame
     };
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-center z-10 md:hidden">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-center z-10">
             <div className="grid grid-cols-3 grid-rows-3 gap-2 w-48 h-48">
                 <div />
                 <button onTouchStart={handlePress('UP')} onMouseDown={handlePress('UP')} disabled={isGameOver} className={buttonClasses} style={{gridColumn: 2, gridRow: 1}} aria-label="Up">

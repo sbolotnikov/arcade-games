@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useCallback } from 'react';
 import type { BoardGrid, Player, TetrominoShape } from '../types';
 import { BOARD_WIDTH, createBoard, TETROMINOS, POINTS, LINES_PER_LEVEL } from '../constants';

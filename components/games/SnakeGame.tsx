@@ -1,6 +1,6 @@
-'use client';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSnakeGame } from '../../hooks/useSnakeGame';
+import { useHighScores } from '../../hooks/useHighScores';
 import GameStats from '../GameStats';
 import Leaderboard from '../Leaderboard';
 import SnakeControls from '../SnakeControls';
@@ -78,10 +78,7 @@ const SnakeTail: React.FC<{ segment: SnakeSegment }> = ({ segment }) => {
 // --- Main Game Component ---
 
 const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }) => {
-    const [highScores, setHighScores] = useState<Score[]>(() => {
-        const savedScores = localStorage.getItem('snake_high_scores');
-        return savedScores ? JSON.parse(savedScores) : [];
-    });
+    const { scores: highScores, highScore, saveScore } = useHighScores('snake');
     
     const gameAreaRef = useRef<HTMLDivElement>(null);
 
@@ -101,17 +98,9 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
 
     useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
-            const newScoreEntry = { name: playerName, score };
-            const updatedScores = [...highScores, newScoreEntry]
-                .sort((a, b) => b.score - a.score)
-                .slice(0, 5);
-
-            if (JSON.stringify(updatedScores) !== JSON.stringify(highScores)) {
-                setHighScores(updatedScores);
-                localStorage.setItem('snake_high_scores', JSON.stringify(updatedScores));
-            }
+            saveScore(playerName, score);
         }
-    }, [isGameOver, score, playerName, highScores]);
+    }, [isGameOver, score, playerName, saveScore]);
     
      useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -220,7 +209,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
             
             <div className="flex flex-row justify-center gap-8 my-4 w-full max-w-xs">
                 <GameStats title="SCORE" value={score} />
-                <GameStats title="HIGH SCORE" value={highScores.length > 0 ? highScores[0].score : 0} />
+                <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
             <main className="relative flex items-center justify-center w-full flex-grow pb-60 md:pb-0">

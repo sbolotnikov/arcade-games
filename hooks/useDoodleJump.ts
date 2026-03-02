@@ -1,4 +1,3 @@
-'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Doodler, Platform } from '../types';
 
@@ -30,7 +29,6 @@ export const useDoodleJump = () => {
     });
     const [platforms, setPlatforms] = useState<Platform[]>([]);
     const [score, setScore] = useState(0);
-    const [highScore, setHighScore] = useState(0);
     const [isGameOver, setIsGameOver] = useState(true);
     const [totalScroll, setTotalScroll] = useState(0);
     const [isPaused, setIsPaused] = useState(false);
@@ -126,7 +124,6 @@ export const useDoodleJump = () => {
             vx: 0,
             direction: 'right',
         });
-        setHighScore(parseInt(localStorage.getItem('doodlejump_high_score') || '0', 10));
     }, [createPlatforms]);
     
     const togglePause = useCallback(() => {
@@ -249,14 +246,11 @@ export const useDoodleJump = () => {
 
         if (nextDoodler.y > GAME_HEIGHT) {
             setIsGameOver(true);
-            if (nextScore > highScore) {
-                localStorage.setItem('doodlejump_high_score', nextScore.toString());
-            }
             return;
         }
         
         gameLoopRef.current = requestAnimationFrame(gameLoop);
-    }, [highScore]);
+    }, []);
 
     useEffect(() => {
         if (!isGameOver && !isPaused) {
@@ -274,7 +268,6 @@ export const useDoodleJump = () => {
         doodler,
         platforms,
         score,
-        highScore,
         isGameOver,
         isPaused,
         totalScroll,
@@ -289,4 +282,3 @@ export const useDoodleJump = () => {
         releaseJump,
     };
 };
-

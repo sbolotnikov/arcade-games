@@ -1,3 +1,4 @@
+
 export type BlockValue = 0 | string;
 export type BoardGrid = BlockValue[][];
 
@@ -73,11 +74,6 @@ export interface DiggerBulletState {
     direction: Direction;
 }
 
-export interface DiggerEmeraldState {
-  x: number;
-  y: number;
-}
-
 // Xonix Types
 export type XonixGridCell = 'BORDER' | 'FILLED' | 'EMPTY' | 'LINE';
 export type XonixGrid = XonixGridCell[][];
@@ -95,4 +91,66 @@ export interface XonixEnemy {
     y: number;
     dx: number;
     dy: number;
+}
+
+// Pole Position Types
+export interface PolePositionPlayer {
+    x: number;      // lateral position on the road (-1 to 1 is on road)
+    z: number;      // position down the track (distance)
+    speed: number;
+    isCrashing: boolean;
+    crashTime: number;
+    isOffroad: boolean;
+}
+
+export interface PolePositionOpponent {
+    id: number;
+    x: number;
+    z: number;
+    sprite: 'car01' | 'car02' | 'car03';
+    speed: number;
+}
+
+export interface TrackSegment {
+    index: number;
+    curve: number; // Visual curve strength
+    y: number; // Y height (hills)
+    
+    // 2D Map Coordinates (Top-down projection)
+    mapX: number;
+    mapY: number;
+}
+
+export interface SceneryObject {
+    id: number;
+    z: number;
+    x: number; // offset from center
+    sprite: 'billboard01' | 'billboard02' | 'tree1';
+}
+
+// Arkanoid Types
+export interface ArkanoidBall {
+    x: number;
+    y: number;
+    dx: number;
+    dy: number;
+    radius: number;
+}
+
+export interface ArkanoidPaddle {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export interface ArkanoidBrick {
+    id: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    color: string;
+    isDestroyed: boolean;
+    points: number;
 }

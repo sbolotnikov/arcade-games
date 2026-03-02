@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { XonixGrid, XonixPlayer, XonixEnemy, Direction, XonixGridCell } from '../types';
 import { useInterval } from './useInterval';
@@ -26,7 +24,6 @@ export const useXonixGame = () => {
     const [path, setPath] = useState<{x: number, y: number}[]>([]);
     
     const [score, setScore] = useState(0);
-    const [highScore, setHighScore] = useState(0);
     const [lives, setLives] = useState(3);
     const [level, setLevel] = useState(1);
     const [filledPercentage, setFilledPercentage] = useState(0);
@@ -74,7 +71,6 @@ export const useXonixGame = () => {
     }, []);
     
     const startGame = useCallback(() => {
-        setHighScore(parseInt(localStorage.getItem('xonix_high_score') || '0', 10));
         setScore(0);
         setLives(3);
         setIsGameOver(false);
@@ -99,9 +95,6 @@ export const useXonixGame = () => {
             if (l - 1 <= 0) {
                 setIsGameOver(true);
                 setGameMessage('GAME OVER');
-                if (score > highScore) {
-                    localStorage.setItem('xonix_high_score', score.toString());
-                }
                 return 0;
             }
             setPlayer({ x: Math.floor(GRID_WIDTH / 2), y: 0, direction: null, isDrawing: false });
@@ -118,7 +111,7 @@ export const useXonixGame = () => {
             setPath([]);
             return l - 1;
         });
-    }, [score, highScore, path]);
+    }, [score, path]);
 
     const floodFill = useCallback((start_x: number, start_y: number, tempGrid: XonixGrid, currentEnemies: XonixEnemy[]) => {
         const toFill = [];
@@ -319,16 +312,13 @@ export const useXonixGame = () => {
             if (nextLevel > levelConfigs.length) {
                 setIsGameOver(true);
                 setGameMessage('YOU WIN!');
-                 if (score > highScore) {
-                    localStorage.setItem('xonix_high_score', score.toString());
-                }
             } else {
                 generateLevel(nextLevel);
             }
         }
-    }, [grid, isGameOver, level, generateLevel, score, highScore]);
+    }, [grid, isGameOver, level, generateLevel, score]);
 
     useInterval(gameLoop, isGameOver || isPaused ? null : TICK_RATE);
 
-    return { grid, player, enemies, path, score, highScore, lives, level, filledPercentage, requiredPercentage: levelConfigs[level-1]?.requiredPercentage || 75, isGameOver, isPaused, gameMessage, startGame, changeDirection, togglePause };
+    return { grid, player, enemies, path, score, lives, level, filledPercentage, requiredPercentage: levelConfigs[level-1]?.requiredPercentage || 75, isGameOver, isPaused, gameMessage, startGame, changeDirection, togglePause };
 };

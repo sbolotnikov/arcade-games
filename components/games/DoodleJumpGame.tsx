@@ -1,6 +1,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useDoodleJump } from '../../hooks/useDoodleJump';
+import { useHighScores } from '../../hooks/useHighScores';
 import Leaderboard from '../Leaderboard';
 import GameStats from '../GameStats';
 import DoodleJumpControls from '../DoodleJumpControls';
@@ -57,11 +58,11 @@ const DoodlerCharacter: React.FC<{ doodler: ReturnType<typeof useDoodleJump>['do
 
 
 const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType, onBack }) => {
+    const { scores: highScores, highScore, saveScore } = useHighScores('doodlejump');
     const {
         doodler,
         platforms,
         score,
-        highScore,
         isGameOver,
         isPaused,
         totalScroll,
@@ -80,11 +81,9 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
 
      useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
-            if (score > highScore) {
-                 console.log("New high score!");
-            }
+            saveScore(playerName, score);
         }
-    }, [isGameOver, score, playerName, highScore]);
+    }, [isGameOver, score, playerName, saveScore]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -166,7 +165,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full grow pb-36 md:pb-0">
+            <main className="relative flex items-center justify-center w-full flex-grow pb-36 md:pb-0">
                 <div 
                     className="relative bg-slate-700 rounded-lg shadow-inner shadow-black overflow-hidden bg-repeat"
                     style={{
@@ -201,7 +200,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                             {score > 0 && (
                                 <>
                                     <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
-                                    <Leaderboard scores={[{ name: playerName, score: score }, { name: 'BEST', score: highScore }]} />
+                                    <Leaderboard scores={highScores} />
                                 </>
                             )}
                             <button 

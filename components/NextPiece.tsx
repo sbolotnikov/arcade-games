@@ -1,4 +1,3 @@
-'use client';
 import React from 'react';
 import type { Tetromino } from '../types';
 import Block from './Block';

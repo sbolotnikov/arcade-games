@@ -1,4 +1,3 @@
-'use client';
 
 import React from 'react';
 import type { Direction } from '../types';
@@ -43,7 +42,7 @@ const DiggerControls: React.FC<DiggerControlsProps> = ({ onDirectionChange, onFi
     }
 
     return (
-        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-between z-10 md:hidden">
+        <div className="absolute bottom-0 left-0 right-0 p-4 pb-8 flex items-center justify-between z-10">
             <div className="grid grid-cols-3 grid-rows-3 gap-1 w-44 h-44">
                 <div />
                 <button onTouchStart={handlePress('UP')} onMouseDown={handlePress('UP')} disabled={isGameOver} className={moveButtonClasses} style={{gridColumn: 2, gridRow: 1}} aria-label="Up">

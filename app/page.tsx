@@ -8,6 +8,7 @@ import SnakeGame from '@/components/games/SnakeGame';
 import DoodleJumpGame from '@/components/games/DoodleJumpGame';
 import DiggerGame from '@/components/games/DiggerGame';
 import XonixGame from '@/components/games/XonixGame';
+import ArkanoidGame from '@/components/games/ArkanoidGame';
 
 const App: React.FC = () => {
     const [playerName, setPlayerName] = useState<string | null>(() => (typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player') : null));
@@ -90,6 +91,12 @@ const App: React.FC = () => {
                             controlType={controlType}
                             onBack={handleBackToGames}
                         />;
+            case 'arkanoid':
+                return <ArkanoidGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;            
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;

@@ -1,7 +1,9 @@
-'use client';
+
+
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useDiggerGame } from '../../hooks/useDiggerGame';
+import { useHighScores } from '../../hooks/useHighScores';
 import type { DiggerPlayerState, DiggerEnemyState, DiggerGoldState, Direction } from '../../types';
 import Leaderboard from '../Leaderboard';
 import GameStats from '../GameStats';
@@ -40,6 +42,7 @@ const PlayerIcon: React.FC<{ player: DiggerPlayerState }> = React.memo(({ player
         <div className="w-1 h-1 bg-gray-400 rounded-full absolute top-0 left-0 animate-exhaust"></div>
     </div>
 ));
+PlayerIcon.displayName = 'PlayerIcon';
 
 const EnemyIcon: React.FC<{ enemy: DiggerEnemyState }> = React.memo(({ enemy }) => (
     <div className={`relative w-full h-full ${enemy.isSpawning ? 'animate-spawn-in' : ''}`}>
@@ -52,6 +55,7 @@ const EnemyIcon: React.FC<{ enemy: DiggerEnemyState }> = React.memo(({ enemy }) 
         </div>
     </div>
 ));
+EnemyIcon.displayName = 'EnemyIcon';
 
 const GoldBagIcon: React.FC<{bag: DiggerGoldState}> = React.memo(({bag}) => (
     <div className={`relative w-full h-full ${bag.isFalling ? 'animate-bounce' : ''}`}>
@@ -59,12 +63,14 @@ const GoldBagIcon: React.FC<{bag: DiggerGoldState}> = React.memo(({bag}) => (
         <div className="absolute text-yellow-900 font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs select-none">$</div>
     </div>
 ));
+GoldBagIcon.displayName = 'GoldBagIcon';
 
 
 const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack }) => {
+    const { scores: highScores, highScore, saveScore } = useHighScores('digger');
     const { 
         grid, player, enemies, goldBags, bullets, 
-        score, highScore, lives, level, emeraldsRemaining, 
+        score, lives, level, emeraldsRemaining, 
         isGameOver, isPaused, gameMessage, 
         startGame, changeDirection, fire, togglePause
     } = useDiggerGame();
@@ -74,6 +80,12 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
     const [cellSize, setCellSize] = useState(28);
 
      useEffect(() => {
+        if (isGameOver && score > 0 && playerName) {
+            saveScore(playerName, score);
+        }
+    }, [isGameOver, score, playerName, saveScore]);
+
+    useEffect(() => {
         const boardElement = gameBoardRef.current;
         if (!boardElement) return;
 
@@ -240,7 +252,7 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                             {gameMessage && <div className="text-4xl font-bold text-white mb-4 animate-pulse">{gameMessage}</div>}
                             {isGameOver && !gameMessage.includes("WIN") && (
                                 <>
-                                    <Leaderboard scores={[{ name: playerName, score }, { name: "HIGH", score: highScore }]} />
+                                    <Leaderboard scores={highScores} />
                                     <button 
                                         onClick={startGame}
                                         className="px-6 py-3 bg-yellow-500 text-slate-900 font-bold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 ease-in-out transform hover:scale-105"

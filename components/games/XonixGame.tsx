@@ -1,11 +1,11 @@
-'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { useXonixGame } from '@/hooks/useXonixGame';
+import { useXonixGame } from '../../hooks/useXonixGame';
+import { useHighScores } from '../../hooks/useHighScores';
 import type { Direction } from '../../types';
 import Leaderboard from '../Leaderboard';
 import GameStats from '../GameStats';
-import XonixControls from '@/components/XonixControls';
+import XonixControls from '../XonixControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
 
@@ -16,14 +16,21 @@ interface XonixGameProps {
 }
 
 const XonixGame: React.FC<XonixGameProps> = ({ playerName, controlType, onBack }) => {
+    const { scores: highScores, highScore, saveScore } = useHighScores('xonix');
     const {
         grid, player, enemies,
-        score, highScore, lives, level, filledPercentage, requiredPercentage,
+        score, lives, level, filledPercentage, requiredPercentage,
         isGameOver, isPaused, gameMessage,
         startGame, changeDirection, togglePause
     } = useXonixGame();
 
     const gameAreaRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isGameOver && score > 0 && playerName) {
+            saveScore(playerName, score);
+        }
+    }, [isGameOver, score, playerName, saveScore]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -149,7 +156,7 @@ const XonixGame: React.FC<XonixGameProps> = ({ playerName, controlType, onBack }
                             {gameMessage && <div className="text-4xl font-bold text-white mb-4 animate-pulse">{gameMessage}</div>}
                             {isGameOver && !gameMessage.includes("WIN") && (
                                 <>
-                                    <Leaderboard scores={[{ name: playerName, score }, { name: "HIGH", score: highScore }]} />
+                                    <Leaderboard scores={highScores} />
                                     <button
                                         onClick={startGame}
                                         className="px-6 py-3 bg-cyan-500 text-slate-900 font-bold rounded-md hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300 transition-all duration-300 ease-in-out transform hover:scale-105"
