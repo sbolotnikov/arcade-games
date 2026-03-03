@@ -100,7 +100,7 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
             window.removeEventListener('keyup', handleKeyUp);
             cancelAnimationFrame(animId);
         };
-    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, startGame]);
+    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, keyboardSpeed, startGame]);
 
     useEffect(() => {
         const canvas = canvasRef.current;

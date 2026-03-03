@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { DiggerGrid, DiggerPlayerState, DiggerEnemyState, DiggerGoldState, DiggerBulletState, Direction } from '../types';
 import { useInterval } from './useInterval';
-import { constants } from 'node:fs/promises';
 
 const GRID_WIDTH = 20;
 const GRID_HEIGHT = 15;

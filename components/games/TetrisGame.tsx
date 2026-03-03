@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useGame } from '../../hooks/useGame';
 import { useHighScores } from '../../hooks/useHighScores';
 import Board from '../Board';
@@ -9,11 +9,7 @@ import Leaderboard from '../Leaderboard';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../../constants';
-
-interface Score {
-    name: string;
-    score: number;
-}
+ 
 
 interface TetrisGameProps {
     playerName: string;

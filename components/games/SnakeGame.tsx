@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useSnakeGame } from '../../hooks/useSnakeGame';
 import { useHighScores } from '../../hooks/useHighScores';
 import GameStats from '../GameStats';
@@ -6,12 +6,8 @@ import Leaderboard from '../Leaderboard';
 import SnakeControls from '../SnakeControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
-import type { Direction, SnakeSegment, Food, Obstacle } from '../../types';
-
-interface Score {
-    name: string;
-    score: number;
-}
+import type { Direction, SnakeSegment } from '../../types';
+ 
 
 interface SnakeGameProps {
     playerName: string;
