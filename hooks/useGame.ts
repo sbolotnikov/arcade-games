@@ -34,6 +34,7 @@ const createInitialGameState = (): GameState => ({
 });
 
 export const useGame = () => {
+    const initialDropTime = 1000;
     const [gameState, setGameState] = useState<GameState>(createInitialGameState());
     const { board, player, nextPiece, score, level, lines, isGameOver, isPaused } = gameState;
 
@@ -98,20 +99,20 @@ export const useGame = () => {
             lines: 0,
             isGameOver: false,
             isPaused: false,
-            dropTime: 1000,
+            dropTime: initialDropTime,
         });
-    }, [randomTetrominoKey]);
+    }, [randomTetrominoKey, initialDropTime]);
 
     const togglePause = useCallback(() => {
         setGameState(prev => {
             if (prev.isGameOver) return prev;
             if (prev.isPaused) {
-                return { ...prev, isPaused: false, dropTime: 1000 / (prev.level + 1) + 200 };
+                return { ...prev, isPaused: false, dropTime: initialDropTime / (prev.level + 1) + 200 };
             } else {
                 return { ...prev, isPaused: true, dropTime: null };
             }
         });
-    }, []);
+    }, [initialDropTime]);
 
     const movePlayer = useCallback((dir: number) => {
         setGameState(prev => {
@@ -168,13 +169,13 @@ export const useGame = () => {
         setTimeout(() => {
             setGameState(prev => {
                 if (!prev.isPaused && !prev.isGameOver) {
-                    return { ...prev, dropTime: 1000 / (prev.level + 1) + 200 };
+                    return { ...prev, dropTime: initialDropTime / (prev.level + 1) + 200 };
                 }
                 return prev;
             });
         }, 50);
         drop();
-    }, [drop]);
+    }, [drop, initialDropTime]);
 
     const hardDropPlayer = useCallback(() => {
         setGameState(prev => {
@@ -219,7 +220,7 @@ export const useGame = () => {
                 score: prev.score + linePoints[rowsSwept] * (prev.level + 1),
                 lines: newLines,
                 level: newLevel,
-                dropTime: 1000 / (newLevel + 1) + 200,
+                dropTime: initialDropTime / (newLevel + 1) + 200,
             }));
         }
 

@@ -1,10 +1,10 @@
+'use client';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { XonixGrid, XonixPlayer, XonixEnemy, Direction, XonixGridCell } from '../types';
+import type { XonixGrid, XonixPlayer, XonixEnemy, Direction } from '../types';
 import { useInterval } from './useInterval';
 
 const GRID_WIDTH = 40;
 const GRID_HEIGHT = 30;
-const TICK_RATE = 100;
 
 const levelConfigs = [
     { level: 1, enemies: 2, enemySpeed: 1, requiredPercentage: 75 },
@@ -18,6 +18,7 @@ const levelConfigs = [
 let nextEnemyId = 0;
 
 export const useXonixGame = () => {
+    const tickRate = 100;
     const [grid, setGrid] = useState<XonixGrid>([]);
     const [player, setPlayer] = useState<XonixPlayer>({ x: 0, y: 0, direction: null, isDrawing: false });
     const [enemies, setEnemies] = useState<XonixEnemy[]>([]);
@@ -247,8 +248,8 @@ export const useXonixGame = () => {
         const nextEnemies = enemies.map(e => {
             let { x, y, dx, dy } = e;
             
-            let nextX = x + dx;
-            let nextY = y + dy;
+            const nextX = x + dx;
+            const nextY = y + dy;
 
             const gridX = Math.floor(nextX);
             const gridY = Math.floor(nextY);
@@ -318,7 +319,7 @@ export const useXonixGame = () => {
         }
     }, [grid, isGameOver, level, generateLevel, score]);
 
-    useInterval(gameLoop, isGameOver || isPaused ? null : TICK_RATE);
+    useInterval(gameLoop, isGameOver || isPaused ? null : tickRate);
 
     return { grid, player, enemies, path, score, lives, level, filledPercentage, requiredPercentage: levelConfigs[level-1]?.requiredPercentage || 75, isGameOver, isPaused, gameMessage, startGame, changeDirection, togglePause };
 };

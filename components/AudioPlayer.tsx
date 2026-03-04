@@ -1,3 +1,4 @@
+"use client";
 import React, { useRef, useEffect, useState } from 'react';
 
 interface AudioPlayerProps {
@@ -22,10 +23,14 @@ const VolumeOffIcon: React.FC = () => (
 const AudioPlayer: React.FC<AudioPlayerProps> = ({ src, isPlaying }) => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isMuted, setIsMuted] = useState(false);
-    const [volume, setVolume] = useState(() => {
+    const [volume, setVolume] = useState(0.2);
+
+    useEffect(() => {
         const savedVolume = localStorage.getItem('arcade_volume');
-        return savedVolume ? parseFloat(savedVolume) : 0.2;
-    });
+        if (savedVolume) {
+            setVolume(parseFloat(savedVolume));
+        }
+    }, []);
 
     useEffect(() => {
         const audio = audioRef.current;

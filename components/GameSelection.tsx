@@ -74,7 +74,34 @@ const XonixIcon: React.FC = () => (
     </div>
 );
 
+const SpaceInvadersIcon: React.FC = () => (
+    <div className="relative w-12 h-12 md:w-16 md:h-16 flex flex-col items-center justify-center gap-1">
+        {/* Alien Body */}
+        <div className="w-10 h-6 bg-green-500 rounded-sm relative">
+            {/* Eyes */}
+            <div className="absolute w-2 h-2 bg-black top-1 left-2"></div>
+            <div className="absolute w-2 h-2 bg-black top-1 right-2"></div>
+            {/* Tentacles */}
+            <div className="absolute w-2 h-2 bg-green-500 -bottom-2 left-0"></div>
+            <div className="absolute w-2 h-2 bg-green-500 -bottom-2 left-4"></div>
+            <div className="absolute w-2 h-2 bg-green-500 -bottom-2 right-0"></div>
+        </div>
+    </div>
+);
 
+const PolePositionIcon: React.FC = () => (
+    <div className="relative w-12 h-12 md:w-16 md:h-16 flex items-center justify-center">
+        {/* Wheels */}
+        <div className="absolute w-2 h-4 md:w-3 md:h-6 bg-gray-800 top-1/2 -translate-y-1/2 left-0 rounded-sm border-2 border-gray-600"></div>
+        <div className="absolute w-2 h-4 md:w-3 md:h-6 bg-gray-800 top-1/2 -translate-y-1/2 right-0 rounded-sm border-2 border-gray-600"></div>
+        {/* Rear Wing */}
+        <div className="absolute w-8/12 h-2/12 bg-gray-700 top-[10%] left-1/2 -translate-x-1/2 border-2 border-gray-800 rounded-sm"></div>
+         {/* Body */}
+        <div className="absolute w-5/12 h-10/12 bg-red-500 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-t-sm rounded-b-md border-2 border-red-700"></div>
+        {/* Front Wing */}
+        <div className="absolute w-10/12 h-2/12 bg-gray-700 top-[70%] left-1/2 -translate-x-1/2 border-2 border-gray-800 rounded-sm"></div>
+    </div>
+);
 
 const ArkanoidIcon: React.FC = () => (
     <div className="relative w-12 h-12 md:w-16 md:h-16 border-2 border-sky-500 p-1 flex flex-col justify-between">
@@ -88,6 +115,14 @@ const ArkanoidIcon: React.FC = () => (
             <div className="w-2 h-2 bg-white rounded-full"></div>
         </div>
         <div className="h-2 w-8 bg-sky-400 mx-auto rounded-sm"></div>
+    </div>
+);
+
+const ColumnsIcon: React.FC = () => (
+    <div className="w-12 h-12 md:w-16 md:h-16 flex flex-col items-center justify-center gap-1 p-1">
+        <div className="w-3 h-3 md:w-4 md:h-4 bg-red-500 rounded-sm shadow-sm"></div>
+        <div className="w-3 h-3 md:w-4 md:h-4 bg-green-500 rounded-sm shadow-sm"></div>
+        <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded-sm shadow-sm"></div>
     </div>
 );
 
@@ -151,11 +186,25 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }) => {
                     icon={<XonixIcon />}
                     onClick={() => onSelect('xonix')}
                 />
-                 
+                 <GameCard
+                    title="Space Invaders"
+                    icon={<SpaceInvadersIcon />}
+                    onClick={() => onSelect('spaceinvaders')}
+                />
+                 <GameCard
+                    title="Pole Position"
+                    icon={<PolePositionIcon />}
+                    onClick={() => onSelect('poleposition')}
+                />
                 <GameCard
                     title="Arkanoid"
                     icon={<ArkanoidIcon />}
                     onClick={() => onSelect('arkanoid')}
+                />
+                <GameCard
+                    title="Columns"
+                    icon={<ColumnsIcon />}
+                    onClick={() => onSelect('columns')}
                 />
             </div>
         </div>

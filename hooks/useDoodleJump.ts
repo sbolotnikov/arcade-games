@@ -5,7 +5,6 @@ const GAME_WIDTH = 400;
 const GAME_HEIGHT = 600;
 const PLAYER_WIDTH = 45;
 const PLAYER_HEIGHT = 45;
-const GRAVITY = 0.3;
 const PLATFORM_HEIGHT = 15;
 const PLATFORM_WIDTH_DEFAULT = 65; // The widest, default platform width
 const PLATFORM_COUNT = 6;
@@ -18,6 +17,7 @@ const JUMP_BOOST_MULTIPLIER = 1.25;
 
 
 export const useDoodleJump = () => {
+    const gravity = 0.3;
     const [doodler, setDoodler] = useState<Doodler>({
         x: GAME_WIDTH / 2 - PLAYER_WIDTH / 2,
         y: GAME_HEIGHT - PLAYER_HEIGHT - 50,
@@ -50,13 +50,15 @@ export const useDoodleJump = () => {
     useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
 
     const getDifficultySettings = (currentScore: number) => {
+        const baseJumpForce = -10.5;
+        
         if (currentScore > 4000) { // Very Hard
             return {
                 platformWidth: 45,
                 minGap: 90,
                 maxGap: 170,
                 scoreMultiplier: 1.5,
-                jumpForce: -11.5, // Was -12.0
+                jumpForce: baseJumpForce - 1.0,
             };
         }
         if (currentScore > 2000) { // Hard
@@ -65,7 +67,7 @@ export const useDoodleJump = () => {
                 minGap: 80,
                 maxGap: 150,
                 scoreMultiplier: 1.3,
-                jumpForce: -11.0, // Was -11.5
+                jumpForce: baseJumpForce - 0.5,
             };
         }
         if (currentScore > 750) { // Medium
@@ -74,7 +76,7 @@ export const useDoodleJump = () => {
                 minGap: 70,
                 maxGap: 130,
                 scoreMultiplier: 1.1,
-                jumpForce: -10.0, // Was -11.0
+                jumpForce: baseJumpForce,
             };
         }
         return { // Easy
@@ -82,7 +84,7 @@ export const useDoodleJump = () => {
             minGap: 60,
             maxGap: 110,
             scoreMultiplier: 1,
-            jumpForce: -9.0, // Was -10.5
+            jumpForce: baseJumpForce + 1.5,
         };
     };
 
@@ -180,7 +182,7 @@ export const useDoodleJump = () => {
         
         nextDoodler.x += nextDoodler.vx;
 
-        nextDoodler.vy += GRAVITY;
+        nextDoodler.vy += gravity;
         nextDoodler.y += nextDoodler.vy;
         
         if (nextDoodler.x > GAME_WIDTH) {

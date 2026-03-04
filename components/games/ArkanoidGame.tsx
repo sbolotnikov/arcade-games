@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { useArkanoidGame } from '../../hooks/useArkanoidGame';
 import { useHighScores } from '../../hooks/useHighScores';
@@ -34,14 +35,19 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
         canvasHeight,
     } = useArkanoidGame();
 
-    const [keyboardSpeed, setKeyboardSpeed] = useState<number>(() => {
-        const saved = localStorage.getItem('arkanoid_keyboard_speed');
-        return saved ? parseInt(saved, 10) : 10;
-    });
-    const [onScreenSpeed, setOnScreenSpeed] = useState<number>(() => {
-        const saved = localStorage.getItem('arkanoid_onscreen_speed');
-        return saved ? parseInt(saved, 10) : 10;
-    });
+    const [keyboardSpeed, setKeyboardSpeed] = useState<number>(10);
+    const [onScreenSpeed, setOnScreenSpeed] = useState<number>(10);
+
+    useEffect(() => {
+        const savedKeyboardSpeed = localStorage.getItem('arkanoid_keyboard_speed');
+        if (savedKeyboardSpeed) {
+            setKeyboardSpeed(parseInt(savedKeyboardSpeed, 10));
+        }
+        const savedOnScreenSpeed = localStorage.getItem('arkanoid_onscreen_speed');
+        if (savedOnScreenSpeed) {
+            setOnScreenSpeed(parseInt(savedOnScreenSpeed, 10));
+        }
+    }, []);
 
     useEffect(() => {
         localStorage.setItem('arkanoid_keyboard_speed', keyboardSpeed.toString());
@@ -100,7 +106,7 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
             window.removeEventListener('keyup', handleKeyUp);
             cancelAnimationFrame(animId);
         };
-    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, keyboardSpeed, startGame]);
+    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, startGame, keyboardSpeed]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -208,35 +214,39 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
                             <div className="w-full max-w-xs bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 space-y-4">
                                 <h3 className="text-sky-400 font-bold text-center border-b border-slate-700 pb-2 mb-2">PADDLE SETTINGS</h3>
                                 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs text-slate-300">
-                                        <span>KEYBOARD SPEED</span>
-                                        <span className="text-sky-400 font-mono">{keyboardSpeed}</span>
+                                {controlType === 'keyboard' && (
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-xs text-slate-300">
+                                            <span>KEYBOARD SPEED</span>
+                                            <span className="text-sky-400 font-mono">{keyboardSpeed}</span>
+                                        </div>
+                                        <input 
+                                            type="range" 
+                                            min="2" 
+                                            max="30" 
+                                            value={keyboardSpeed} 
+                                            onChange={(e) => setKeyboardSpeed(parseInt(e.target.value))}
+                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                                        />
                                     </div>
-                                    <input 
-                                        type="range" 
-                                        min="2" 
-                                        max="30" 
-                                        value={keyboardSpeed} 
-                                        onChange={(e) => setKeyboardSpeed(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                                    />
-                                </div>
+                                )}
 
-                                <div className="space-y-1">
-                                    <div className="flex justify-between text-xs text-slate-300">
-                                        <span>ON-SCREEN BUTTONS SPEED</span>
-                                        <span className="text-sky-400 font-mono">{onScreenSpeed}</span>
+                                {controlType === 'on-screen' && (
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between text-xs text-slate-300">
+                                            <span>ON-SCREEN BUTTONS SPEED</span>
+                                            <span className="text-sky-400 font-mono">{onScreenSpeed}</span>
+                                        </div>
+                                        <input 
+                                            type="range" 
+                                            min="2" 
+                                            max="30" 
+                                            value={onScreenSpeed} 
+                                            onChange={(e) => setOnScreenSpeed(parseInt(e.target.value))}
+                                            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
+                                        />
                                     </div>
-                                    <input 
-                                        type="range" 
-                                        min="2" 
-                                        max="30" 
-                                        value={onScreenSpeed} 
-                                        onChange={(e) => setOnScreenSpeed(parseInt(e.target.value))}
-                                        className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-500"
-                                    />
-                                </div>
+                                )}
                             </div>
 
                             {score > 0 && <Leaderboard scores={highScores} />}

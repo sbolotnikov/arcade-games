@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Login from '@/components/Login';
 import ControlSelection from '@/components/ControlSelection';
 import GameSelection from '@/components/GameSelection';
@@ -8,12 +8,22 @@ import SnakeGame from '@/components/games/SnakeGame';
 import DoodleJumpGame from '@/components/games/DoodleJumpGame';
 import DiggerGame from '@/components/games/DiggerGame';
 import XonixGame from '@/components/games/XonixGame';
+import SpaceInvadersGame from '@/components/games/SpaceInvadersGame';
+import PolePositionGame from '@/components/games/PolePositionGame';
 import ArkanoidGame from '@/components/games/ArkanoidGame';
+import ColumnsGame from '@/components/games/ColumnsGame';
 
 const App: React.FC = () => {
-    const [playerName, setPlayerName] = useState<string | null>(() => (typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player') : null));
+    const [playerName, setPlayerName] = useState<string | null>(null);
     const [controlType, setControlType] = useState<'keyboard' | 'on-screen' | null>(null);
     const [selectedGame, setSelectedGame] = useState<string | null>(null);
+
+    useEffect(() => {
+        const storedPlayerName = localStorage.getItem('arcade_player');
+        if (storedPlayerName) {
+            setPlayerName(storedPlayerName);
+        }
+    }, []);
 
     const handleLogin = (name: string) => {
         setPlayerName(name);
@@ -91,12 +101,30 @@ const App: React.FC = () => {
                             controlType={controlType}
                             onBack={handleBackToGames}
                         />;
+            case 'spaceinvaders':
+                return <SpaceInvadersGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;
+            case 'poleposition':
+                return <PolePositionGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;
             case 'arkanoid':
                 return <ArkanoidGame
                             playerName={playerName}
                             controlType={controlType}
                             onBack={handleBackToGames}
-                        />;            
+                        />;
+            case 'columns':
+                return <ColumnsGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;

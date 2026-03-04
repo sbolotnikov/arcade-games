@@ -15,7 +15,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-900 p-4 text-center">
+        <div className="flex flex-col items-center justify-center h-screen bg-slate-900 p-4 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-cyan-400 mb-8 tracking-widest" style={{ textShadow: '0 0 10px #06b6d4, 0 0 20px #06b6d4' }}>
                 ARCADE
             </h1>

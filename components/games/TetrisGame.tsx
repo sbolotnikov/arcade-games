@@ -9,7 +9,7 @@ import Leaderboard from '../Leaderboard';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../../constants';
- 
+
 
 interface TetrisGameProps {
     playerName: string;

@@ -94,38 +94,60 @@ export interface XonixEnemy {
 }
 
 // Pole Position Types
-export interface PolePositionPlayer {
-    x: number;      // lateral position on the road (-1 to 1 is on road)
-    z: number;      // position down the track (distance)
-    speed: number;
-    isCrashing: boolean;
-    crashTime: number;
-    isOffroad: boolean;
+export interface PolePositionSegment {
+    length: number;
+    curve: number;        // -1.0 to +1.0
+    elevation: number;    // -1.0 to +1.0
+    width: number;        // road width multiplier
+    decorations: {
+        leftObjects: string[];
+        rightObjects: string[];
+        sceneryType: string;
+    };
+}
+
+export interface PolePositionTrack {
+    id: string;
+    name: string;
+    segments: PolePositionSegment[];
+}
+
+export interface PolePositionSprite {
+    x: number;
+    y: number;
+    z: number;
+    scale: number;
+    type: string;
 }
 
 export interface PolePositionOpponent {
     id: number;
+    z: number;
     x: number;
-    z: number;
-    sprite: 'car01' | 'car02' | 'car03';
     speed: number;
+    sprite: string;
 }
 
-export interface TrackSegment {
-    index: number;
-    curve: number; // Visual curve strength
-    y: number; // Y height (hills)
-    
-    // 2D Map Coordinates (Top-down projection)
-    mapX: number;
-    mapY: number;
-}
-
-export interface SceneryObject {
+export interface SpaceInvadersEntity {
     id: number;
-    z: number;
-    x: number; // offset from center
-    sprite: 'billboard01' | 'billboard02' | 'tree1';
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+export interface SpaceInvadersAlien extends SpaceInvadersEntity {
+    type: number; // 1, 2, or 3 for different alien types
+    points: number;
+}
+
+export interface SpaceInvadersBullet extends SpaceInvadersEntity {
+    velocity: number;
+    owner: 'player' | 'alien';
+}
+
+export interface SpaceInvadersShield extends SpaceInvadersEntity {
+    health: number;
 }
 
 // Arkanoid Types
@@ -153,4 +175,14 @@ export interface ArkanoidBrick {
     color: string;
     isDestroyed: boolean;
     points: number;
+}
+
+// Columns Types
+export type ColumnsBlock = string | null; // Color string or null if empty
+export type ColumnsGrid = ColumnsBlock[][];
+
+export interface ColumnsPiece {
+    x: number;
+    y: number;
+    blocks: [string, string, string]; // Top, Middle, Bottom
 }

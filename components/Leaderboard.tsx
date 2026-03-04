@@ -23,7 +23,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ scores }) => {
                         <span className="font-bold text-lg text-white">
                            {index + 1}. <span className="text-purple-400">{score.name}</span>
                         </span>
-                        <span className="text-yellow-400">{score.score.toLocaleString()}</span>
+                        <span className="text-yellow-400">{(score.score || 0).toLocaleString()}</span>
                     </li>
                 ))}
             </ol>

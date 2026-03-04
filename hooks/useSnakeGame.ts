@@ -3,7 +3,6 @@ import type { Snake, Food, Direction, Obstacle, SnakeSegment } from '../types';
 import { useInterval } from './useInterval';
 
 const BOARD_SIZE = 20;
-const INITIAL_SPEED = 200;
 const SPEED_INCREMENT = 2; // Slower speed increase
 
 // --- Helper Functions ---
@@ -24,6 +23,7 @@ const getValidRandomCoordinate = (snake: Snake, food: Food[], obstacles: Obstacl
 
 
 export const useSnakeGame = () => {
+    const initialSpeed = 200;
     const [snake, setSnake] = useState<Snake>([]);
     const [food, setFood] = useState<Food[]>([]);
     const [obstacles, setObstacles] = useState<Obstacle[]>([]);
@@ -60,11 +60,11 @@ export const useSnakeGame = () => {
         setFood([getValidRandomCoordinate(initialSnake, [], [])]);
         setObstacles([]);
         setDirection(null);
-        setSpeed(INITIAL_SPEED);
+        setSpeed(initialSpeed);
         setScore(0);
         setIsEating(false);
         setIsPaused(false);
-    }, []);
+    }, [initialSpeed]);
 
     const togglePause = useCallback(() => {
         if (isGameOver) return;
@@ -130,7 +130,7 @@ export const useSnakeGame = () => {
                 setIsEating(true);
                 setTimeout(() => setIsEating(false), 200); // Animation duration
 
-                setSpeed(s => (s ? Math.max(40, s - SPEED_INCREMENT) : INITIAL_SPEED));
+                setSpeed(s => (s ? Math.max(40, s - SPEED_INCREMENT) : initialSpeed));
                 
                 const newFood = [...food];
                 newFood.splice(foodIndex, 1); // Remove eaten food
@@ -153,7 +153,7 @@ export const useSnakeGame = () => {
 
             return newSnake;
         });
-    }, [direction, food, obstacles, isGameOver, score, manageObstacles]);
+    }, [direction, food, obstacles, isGameOver, score, manageObstacles, initialSpeed]);
 
     useInterval(gameLoop, isPaused ? null : speed);
 

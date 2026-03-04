@@ -7,6 +7,7 @@ import SnakeControls from '../SnakeControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
 import type { Direction, SnakeSegment } from '../../types';
+
  
 
 interface SnakeGameProps {
