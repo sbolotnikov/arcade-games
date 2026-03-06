@@ -9,7 +9,7 @@ interface ControlSelectionProps {
 
 const ControlSelection: React.FC<ControlSelectionProps> = ({ onSelect, onLogout, playerName }) => {
     return (
-        <div className="flex flex-col items-center justify-center h-full bg-slate-900 p-4 text-center">
+        <div className="flex flex-col items-center justify-center h-screen bg-slate-900 p-4 text-center">
             <div className="absolute top-4 right-4 text-sm">
                 <span>Welcome, <span className="font-bold text-cyan-400">{playerName}</span>!</span>
                 <button onClick={onLogout} className="ml-4 text-slate-400 hover:text-white underline">Logout</button>
