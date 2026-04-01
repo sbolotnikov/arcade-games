@@ -1,4 +1,17 @@
 import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+    Grid3X3, 
+    Zap as SnakeIconLucide, 
+    Rocket, 
+    Pickaxe, 
+    Maximize, 
+    Ghost, 
+    Car, 
+    Gamepad2, 
+    Gem, 
+    Beer 
+} from 'lucide-react';
 
 interface GameSelectionProps {
   onSelect: (game: string) => void;
@@ -127,6 +140,16 @@ const ColumnsIcon: React.FC = () => (
   </div>
 );
 
+const TapperIcon: React.FC = () => (
+    <motion.div 
+        className="relative flex items-center justify-center"
+        whileHover={{ y: [0, -5, 0], rotate: [0, -5, 5, 0], transition: { repeat: Infinity, duration: 0.8 } }}
+    >
+        <Beer className="w-12 h-12 md:w-16 md:h-16 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]" />
+        <div className="absolute inset-0 bg-amber-500/10 blur-xl rounded-full"></div>
+    </motion.div>
+);
+
 const GameCard: React.FC<{
   title: string;
   onClick: () => void;
@@ -233,6 +256,11 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }) => {
               title="Columns"
               icon={<ColumnsIcon />}
               onClick={() => onSelect('columns')}
+            />
+            <GameCard
+              title="Tapper"
+              icon={<TapperIcon />}
+              onClick={() => onSelect('tapper')}
             />
           </div>
         </div>

@@ -12,6 +12,7 @@ import SpaceInvadersGame from '@/components/games/SpaceInvadersGame';
 import PolePositionGame from '@/components/games/PolePositionGame';
 import ArkanoidGame from '@/components/games/ArkanoidGame';
 import ColumnsGame from '@/components/games/ColumnsGame';
+import TapperGame from '@/components/games/TapperGame';
 
 const App: React.FC = () => {
     const [playerName, setPlayerName] = useState<string | null>(null);
@@ -125,6 +126,12 @@ const App: React.FC = () => {
                             controlType={controlType}
                             onBack={handleBackToGames}
                         />;
+            case 'tapper':
+                return <TapperGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;            
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;
