@@ -17,7 +17,8 @@ const BREAKING = -MAX_SPEED;
 const DECEL = -MAX_SPEED / 5;
 const OFF_ROAD_DECEL = -MAX_SPEED / 2;
 const OFF_ROAD_LIMIT = MAX_SPEED / 4;
-
+const TURN_RESPONSE = 1.3;
+const AUTO_CENTER = 2.2;
 const COLORS = {
     SKY: '#72D7EE',
     TREE: '#005108',
@@ -59,13 +60,13 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         track.segments.forEach((s, i) => {
             const startZ = totalLength;
             const endZ = totalLength + s.length;
-            
+
             // We break each logical segment into small rendering segments
             const numSubSegments = Math.floor(s.length / SEGMENT_LENGTH);
             for (let j = 0; j < numSubSegments; j++) {
                 const n = segments.length;
                 const color = Math.floor(n / RUMBLE_LENGTH) % 2 ? COLORS.DARK : COLORS.LIGHT;
-                
+
                 segments.push({
                     index: n,
                     p1: { world: { x: 0, y: 0, z: n * SEGMENT_LENGTH }, camera: { x: 0, y: 0, z: 0 }, screen: { x: 0, y: 0, w: 0, scale: 0 } },
@@ -96,18 +97,25 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
 
         // Input
         const speedPercent = state.speed / MAX_SPEED;
-        const dx = dt * 2 * speedPercent; // Basic steering amount
-        
-        if (state.keys['ArrowLeft']) state.playerX -= dx;
-        if (state.keys['ArrowRight']) state.playerX += dx;
-        
+        const steerStep = dt * TURN_RESPONSE * speedPercent;
+        const isTurningLeft = state.keys['ArrowLeft'];
+        const isTurningRight = state.keys['ArrowRight'];
+
+        if (isTurningLeft && !isTurningRight) {
+            state.playerX -= steerStep;
+        } else if (isTurningRight && !isTurningLeft) {
+            state.playerX += steerStep;
+        } else {
+            const recenterStep = Math.min(1, dt * AUTO_CENTER);
+            state.playerX += (0 - state.playerX) * recenterStep;
+        }
         // Centrifugal force - reduced and smoothed
         const segmentIndex = Math.floor(state.position / SEGMENT_LENGTH);
         const playerSegment = state.segments[((segmentIndex % state.segments.length) + state.segments.length) % state.segments.length];
-        
+
         if (playerSegment) {
-             // Apply centrifugal force only when moving
-            state.playerX -= dx * playerSegment.curve * speedPercent;
+            // Apply centrifugal force only when moving
+            state.playerX -= steerStep * playerSegment.curve * speedPercent;
         }
 
         // Acceleration
@@ -127,7 +135,7 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         // Move
         if (state.trackLength > 0) {
             state.position += state.speed * dt;
-            
+
             // Lap Check
             if (state.position >= state.trackLength) {
                 state.position -= state.trackLength;
@@ -135,7 +143,7 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
                 state.lapTime = 0;
                 state.currentLap++;
                 setCurrentLap(state.currentLap);
-                
+
                 if (state.currentLap > MAX_LAPS) {
                     setGameState('finished');
                 }
@@ -156,23 +164,23 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         if (!state.segments || state.segments.length === 0) return;
 
         const { segments, position, playerX, trackLength } = state;
-        
+
         ctx.clearRect(0, 0, width, height);
-        
+
         // Sky
         ctx.fillStyle = COLORS.SKY;
         ctx.fillRect(0, 0, width, height / 2);
-        
+
         // Ground
         ctx.fillStyle = COLORS.FOG;
         ctx.fillRect(0, height / 2, width, height / 2);
 
         const baseSegmentIndex = Math.floor(position / SEGMENT_LENGTH);
         const basePercent = (position % SEGMENT_LENGTH) / SEGMENT_LENGTH;
-        
+
         let maxY = height;
         let x = 0;
-        
+
         const safeIndex = ((baseSegmentIndex % segments.length) + segments.length) % segments.length;
         const baseSegment = segments[safeIndex];
         if (!baseSegment) return;
@@ -196,7 +204,7 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
 
             const looped = segmentIndex >= segments.length;
             const loopOffset = looped ? trackLength : 0;
-            
+
             const cameraX = playerX * ROAD_WIDTH + x;
             const cameraY = CAMERA_HEIGHT;
             const cameraZ = position - loopOffset;
