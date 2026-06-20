@@ -2,9 +2,12 @@
   "name": "Oldfashioned Arcade Games",
   "short_name": "Arcade Games",
   "description": "A collection of classic arcade games built with React. Choose your controls and aim for the high score in games like Tetris and Snake!",
-  "theme_color": "#fff",
-  "background_color": "#fff",
+  "id": "/",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
   "display": "standalone",
+  "orientation": "any",
+  "categories": ["games", "entertainment"],
   "scope": "/",
   "start_url": "/",
 
@@ -20,12 +23,14 @@
     {
       "src": "/icon-72x72.png",
       "sizes": "72x72",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-96x96.png",
       "sizes": "96x96",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/icon-128x128.png",

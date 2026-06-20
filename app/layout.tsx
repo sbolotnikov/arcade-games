@@ -1,7 +1,9 @@
 
-import type { Metadata } from 'next'; 
+import type { Metadata, Viewport } from 'next';
+// @ts-ignore: side-effect import of global CSS
 import './global.css';
 import localFont from 'next/font/local'; 
+import PwaRegistration from '@/components/PwaRegistration';
 
 const arcadeClassic = localFont({
   src: [
@@ -15,8 +17,21 @@ const arcadeClassic = localFont({
 });
  
 export const metadata: Metadata = {
-   manifest: '/site.webmanifest',  
-    title: 'Oldfashioned Arcade Games',
+   manifest: '/site.webmanifest',
+   applicationName: 'Oldfashioned Arcade Games',
+   title: 'Oldfashioned Arcade Games',
+   appleWebApp: {
+     capable: true,
+     statusBarStyle: 'black-translucent',
+     title: 'Arcade Games',
+   },
+   icons: {
+     icon: [
+       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+       { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+     ],
+     apple: '/apple-touch-icon.png',
+   },
    description:
     'A collection of classic arcade games built with React. Choose your controls and aim for the high score in games like Tetris and Snake!',
      openGraph: {
@@ -34,6 +49,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: '#0f172a',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,23 +60,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <link
-        rel="icon"
-        href="/icon?<generated>"
-        type="image/<generated>"
-        sizes="<generated>"
-      />
-      <link
-        rel="apple-touch-icon"
-        href="/apple-icon?<generated>"
-        type="image/<generated>"
-        sizes="<generated>"
-      />
-         
       <body suppressHydrationWarning={true}
         className={`${arcadeClassic.variable} antialiased`}
       >
         {children}
+        <PwaRegistration />
       </body>
     </html>
   );
