@@ -1,0 +1,2 @@
+import {describe,it,expect} from 'vitest';import{encryptJson,decryptJson}from'../lib/crypto/encryption';
+describe('encryption',()=>{it('round trips and rejects wrong passwords',async()=>{const p=await encryptJson({html:'<p>secret</p>'},'correct horse',1000);expect(await decryptJson<{html:string}>(p,'correct horse')).toEqual({html:'<p>secret</p>'});await expect(decryptJson(p,'wrong')).rejects.toThrow()})});

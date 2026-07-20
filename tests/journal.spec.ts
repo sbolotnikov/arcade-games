@@ -1,0 +1,2 @@
+import {test,expect} from '@playwright/test';
+test('create search delete entry',async({page})=>{await page.goto('/');await page.getByText('New').click();await page.getByLabel('Subtitle').fill('A quiet test');await page.locator('input').first().fill('Playwright Entry');await page.getByText('Save').click();await page.goto('/');await page.getByLabel('Search').fill('Playwright');await expect(page.getByText('Playwright Entry')).toBeVisible();await page.getByLabel('Delete').first().click();page.on('dialog',d=>d.accept())});

@@ -1,0 +1,3 @@
+import{describe,it,expect}from'vitest';import{sanitizeFilename,buildStandaloneHtml}from'../lib/export/standaloneHtml';import type{JournalEntry}from'../types/journal';
+it('sanitizes filenames',()=>expect(sanitizeFilename('2026 My <Bad> Entry!!')).toBe('2026-my-entry'));
+it('generates standalone html',async()=>{const e:JournalEntry={id:'1',schemaVersion:1,title:'Trip',entryDate:'2026-07-20',html:'<p>Hello</p>',excerpt:'Hello',coverLayout:'classic',assetIds:[],tags:['travel'],favorite:false,locked:false,privacy:'metadata',hasAudio:false,createdAt:'x',updatedAt:'x'};const h=await buildStandaloneHtml(e,[]);expect(h).toContain('journal-metadata');expect(h).toContain('Open Entry')});
