@@ -1,0 +1,3 @@
+import type{BackupFile,JournalAsset,JournalEntry}from"@/types/journal";import{blobToDataUrl,dataUrlToBlob}from"@/lib/media/files";
+export async function createBackup(entries:JournalEntry[],assets:JournalAsset[]):Promise<BackupFile>{return{schemaVersion:1,exportedAt:new Date().toISOString(),entries,assets:await Promise.all(assets.map(async a=>({...a,blob:undefined,dataUrl:await blobToDataUrl(a.blob)})))}}
+export async function restoreBackup(b:BackupFile){return{entries:b.entries.map(e=>({...e,id:crypto.randomUUID()})),assets:await Promise.all(b.assets.map(async a=>({...a,id:crypto.randomUUID(),blob:await dataUrlToBlob(a.dataUrl)})))}}

@@ -1,0 +1,1 @@
+import{it,expect}from'vitest';import{sanitizeHtml,excerptFromHtml}from'../lib/sanitization/html';it('removes scripts and event handlers',()=>{const h=sanitizeHtml('<p onclick="x()">Hi<script>alert(1)</script></p>');expect(h).not.toContain('script');expect(h).not.toContain('onclick');expect(excerptFromHtml(h)).toBe('Hi')});

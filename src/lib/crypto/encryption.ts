@@ -1,0 +1,9 @@
+import type {EncryptedPayload} from "@/types/journal";
+const enc=new TextEncoder(),dec=new TextDecoder();
+function b64(input:ArrayBuffer|Uint8Array){const u=input instanceof Uint8Array?input:new Uint8Array(input);let s="";u.forEach(x=>s+=String.fromCharCode(x));return btoa(s)}
+function unb64(s:string){return Uint8Array.from(atob(s),c=>c.charCodeAt(0))}
+function ab(u:Uint8Array):ArrayBuffer{return u.buffer.slice(u.byteOffset,u.byteOffset+u.byteLength) as ArrayBuffer}
+async function key(password:string,salt:Uint8Array,iterations:number){const base=await crypto.subtle.importKey("raw",enc.encode(password),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:ab(salt),iterations,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+export async function encryptJson(value:unknown,password:string,iterations=310000):Promise<EncryptedPayload>{const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12));const k=await key(password,salt,iterations);const ciphertext=await crypto.subtle.encrypt({name:"AES-GCM",iv:ab(iv)},k,enc.encode(JSON.stringify(value)));return{version:1,algorithm:"AES-GCM",keyDerivation:"PBKDF2",hash:"SHA-256",iterations,salt:b64(salt),iv:b64(iv),ciphertext:b64(ciphertext)}}
+export async function decryptJson<T>(payload:EncryptedPayload,password:string):Promise<T>{try{const iv=unb64(payload.iv),ct=unb64(payload.ciphertext);const k=await key(password,unb64(payload.salt),payload.iterations);const pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:ab(iv)},k,ab(ct));return JSON.parse(dec.decode(pt)) as T}catch{throw new Error("Incorrect password or corrupt encrypted journal data")}}
+export function passwordScore(p:string){let s=0;if(p.length>=12)s++;if(/[A-Z]/.test(p)&&/[a-z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return s}

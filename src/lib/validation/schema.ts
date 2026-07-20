@@ -1,0 +1,4 @@
+import type {JournalEntry,JournalAsset,EncryptedPayload} from "@/types/journal";
+export function assertEntry(v:unknown):JournalEntry{const e=v as Partial<JournalEntry>; if(!e||typeof e.id!=="string"||typeof e.title!=="string"||typeof e.entryDate!=="string") throw new Error("Unsupported or corrupt journal entry schema"); return e as JournalEntry}
+export function assertAsset(v:unknown):JournalAsset{const a=v as Partial<JournalAsset>; if(!a||typeof a.id!=="string"||!(a.blob instanceof Blob)) throw new Error("Invalid media asset"); return a as JournalAsset}
+export function assertEncryptedPayload(v:unknown):EncryptedPayload{const p=v as Partial<EncryptedPayload>; if(p.algorithm!=="AES-GCM"||p.keyDerivation!=="PBKDF2"||typeof p.ciphertext!=="string") throw new Error("Invalid encrypted payload"); return p as EncryptedPayload}
