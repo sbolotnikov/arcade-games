@@ -149,7 +149,28 @@ const TapperIcon: React.FC = () => (
         <div className="absolute inset-0 bg-amber-500/10 blur-xl rounded-full"></div>
     </motion.div>
 );
-
+const SuperMarioIcon: React.FC = () => (
+    <motion.div 
+        className="relative flex items-center justify-center w-16 h-16 md:w-20 md:h-20"
+        whileHover={{ y: [0, -10, 0], transition: { repeat: Infinity, duration: 0.5 } }}
+    >
+        <svg viewBox="0 0 100 120" className="w-full h-full overflow-visible drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]">
+            <path d="M 15 20 L 85 20 C 95 20 95 35 95 35 L 5 35 C 5 35 5 20 15 20 Z" fill="#dc2626" />
+            <rect x="15" y="35" width="70" height="35" fill="#fcd34d" rx="12" />
+            <circle cx="85" cy="50" r="12" fill="#fcd34d" />
+            <path d="M 60 55 Q 85 45 95 65 C 80 70 70 70 60 55 Z" fill="#000" />
+            <circle cx="70" cy="40" r="6" fill="#000" />
+            <rect x="25" y="70" width="50" height="35" fill="#2563eb" rx="8" />
+            <path d="M 15 70 L 60 70 L 60 90 L 15 90 Z" fill="#dc2626" />
+            <circle cx="45" cy="85" r="4" fill="#fbbf24" />
+            <rect x="30" y="105" width="15" height="15" fill="#2563eb" />
+            <rect x="25" y="120" width="22" height="12" fill="#78350f" rx="4"/>
+            <rect x="55" y="105" width="15" height="15" fill="#2563eb" />
+            <rect x="55" y="120" width="22" height="12" fill="#78350f" rx="4"/>
+        </svg>
+        <div className="absolute inset-0 bg-red-500/10 blur-xl rounded-full"></div>
+    </motion.div>
+);
 const GameCard: React.FC<{
   title: string;
   onClick: () => void;
@@ -262,6 +283,11 @@ const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }) => {
               icon={<TapperIcon />}
               onClick={() => onSelect('tapper')}
             />
+            <GameCard
+                    title="Super Mario"
+                    icon={<SuperMarioIcon />}
+                    onClick={() => onSelect('supermario')}
+                />
           </div>
         </div>
       </div>

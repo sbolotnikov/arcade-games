@@ -13,6 +13,8 @@ import PolePositionGame from '@/components/games/PolePositionGame';
 import ArkanoidGame from '@/components/games/ArkanoidGame';
 import ColumnsGame from '@/components/games/ColumnsGame';
 import TapperGame from '@/components/games/TapperGame';
+import SuperMarioGame from '@/components/games/SuperMarioGame';
+
 
 const App: React.FC = () => {
     const [playerName, setPlayerName] = useState<string | null>(null);
@@ -131,7 +133,13 @@ const App: React.FC = () => {
                             playerName={playerName}
                             controlType={controlType}
                             onBack={handleBackToGames}
-                        />;            
+                        />;
+            case 'supermario':
+                return <SuperMarioGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;                        
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;
