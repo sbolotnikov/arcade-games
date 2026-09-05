@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSnakeGame } from '../../hooks/useSnakeGame';
 import { useHighScores } from '../../hooks/useHighScores';
 import GameStats from '../GameStats';
@@ -6,9 +6,14 @@ import Leaderboard from '../Leaderboard';
 import SnakeControls from '../SnakeControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
-import type { Direction, SnakeSegment } from '../../types';
+import GameStartOverlay from '../GameStartOverlay';
+import type { Direction, SnakeSegment, Food, Obstacle } from '../../types';
+import { SnakeHeadSvg, SnakeBodySvg, SnakeTailSvg, SnakeFoodSvg } from '../../data/svgPool';
 
- 
+interface Score {
+    name: string;
+    score: number;
+}
 
 interface SnakeGameProps {
     playerName: string;
@@ -17,7 +22,7 @@ interface SnakeGameProps {
 }
 
 
-// --- Graphics Components ---
+// --- Graphics Components using centralized SVG Asset Pool ---
 
 const getRotation = (dir: Direction) => {
     if (dir === 'UP') return '-90deg';
@@ -27,47 +32,56 @@ const getRotation = (dir: Direction) => {
 };
 
 const SnakeHead: React.FC<{ segment: SnakeSegment; isEating: boolean }> = ({ segment, isEating }) => {
-    const style = {
-        transform: `rotate(${getRotation(segment.direction)})`,
-    };
     return (
-        <div className="absolute w-full h-full" style={style}>
-            <div className="absolute w-[90%] h-[90%] left-[5%] top-[5%] bg-green-400 rounded-md"></div>
-            <div className="absolute w-1/5 h-1/5 bg-white rounded-full top-[15%] left-[20%] animate-blink">
-                <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
-            </div>
-             <div className="absolute w-1/5 h-1/5 bg-white rounded-full top-[65%] left-[20%] animate-blink">
-                <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
-            </div>
-            <div 
-                className={`absolute w-1/2 h-1/4 bg-green-600 top-1/2 -translate-y-1/2 right-[-5%] rounded-r-sm transition-transform duration-100 ${isEating ? 'scale-y-150' : ''}`}
-            ></div>
+        <div 
+            className="absolute w-[138%] h-[138%] -left-[19%] -top-[19%] transition-transform duration-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] z-10" 
+            style={{ transform: `rotate(${getRotation(segment.direction)})` }}
+        >
+            <SnakeHeadSvg isEating={isEating} />
         </div>
     );
 };
 
 const SnakeBody: React.FC<{ segment: SnakeSegment }> = ({ segment }) => {
-    const style = {
-        transform: `rotate(${getRotation(segment.direction)}) scale(0.9) `,
-    };
     return (
-         <div className="absolute w-full h-full animate-pulse-slow" style={style}>
-            <div className="absolute w-full h-full bg-green-500 rounded-md"></div>
-            <div className="absolute w-1/2 h-1/2 top-1/4 left-0 bg-black opacity-10 rounded-r-full"></div>
-         </div>
+        <div 
+            className="absolute w-[144%] h-[144%] -left-[22%] -top-[22%] drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)] z-10" 
+            style={{ transform: `rotate(${getRotation(segment.direction)})` }}
+        >
+            <SnakeBodySvg />
+        </div>
     );
 };
 
-const SnakeTail: React.FC<{ segment: SnakeSegment }> = ({ segment }) => {
-     const style = {
-        transform: `rotate(${getRotation(segment.direction)})`,
+const SnakeTail: React.FC<{ segment: SnakeSegment; prev?: SnakeSegment }> = ({ segment, prev }) => {
+    const getTailRotation = (tail: SnakeSegment, prevSeg?: SnakeSegment) => {
+        if (prevSeg) {
+            let dx = tail.x - prevSeg.x;
+            let dy = tail.y - prevSeg.y;
+            // Handle edge wrapping if board wraps
+            if (dx > 1) dx = -1;
+            else if (dx < -1) dx = 1;
+            if (dy > 1) dy = -1;
+            else if (dy < -1) dy = 1;
+
+            if (dx === 1) return '0deg';     // tip points right away from body
+            if (dx === -1) return '180deg';  // tip points left away from body
+            if (dy === 1) return '90deg';    // tip points down away from body
+            if (dy === -1) return '-90deg';  // tip points up away from body
+        }
+        // Fallback: tail tip trails 180 degrees opposite to forward movement direction
+        if (tail.direction === 'UP') return '90deg';
+        if (tail.direction === 'DOWN') return '-90deg';
+        if (tail.direction === 'LEFT') return '0deg';
+        return '180deg'; // 'RIGHT'
     };
+
     return (
-        <div className="absolute w-full h-full" style={style}>
-            <div 
-                className="absolute w-full h-full bg-green-500"
-                style={{ clipPath: 'polygon(0% 20%, 100% 50%, 0% 80%)' }}
-            ></div>
+        <div 
+            className="absolute w-[138%] h-[138%] -left-[19%] -top-[19%] drop-shadow-[0_2px_3px_rgba(0,0,0,0.35)] z-10" 
+            style={{ transform: `rotate(${getTailRotation(segment, prev)})` }}
+        >
+            <SnakeTailSvg />
         </div>
     );
 };
@@ -139,22 +153,48 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
         const isHead = index === 0;
         const isTail = index === snake.length - 1;
         
+        const prev = snake[index - 1];
+
         let SegmentComponent;
         if (isHead) SegmentComponent = <SnakeHead segment={segment} isEating={isEating} />;
-        else if (isTail && snake.length > 1) SegmentComponent = <SnakeTail segment={segment} />;
+        else if (isTail && snake.length > 1) SegmentComponent = <SnakeTail segment={segment} prev={prev} />;
         else SegmentComponent = <SnakeBody segment={segment} />;
+        let jointBridge = null;
+        if (prev) {
+            const dx = prev.x - segment.x;
+            const dy = prev.y - segment.y;
+            // Only bridge adjacent continuous moves (prevent bridging across edge wrap-around)
+            if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1 && (dx !== 0 || dy !== 0)) {
+                jointBridge = (
+                    <div 
+                        className="absolute rounded-full pointer-events-none"
+                        style={{
+                            left: `${50 + dx * 32}%`,
+                            top: `${50 + dy * 32}%`,
+                            width: '92%',
+                            height: '92%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'radial-gradient(circle, #22c55e 0%, #16a34a 60%, #14532d 100%)',
+                            zIndex: 1
+                        }}
+                    />
+                );
+            }
+        }
 
         return (
             <div
                 key={index}
-                className="absolute"
+                className="absolute pointer-events-none"
                 style={{
                     width: `calc(100% / ${boardSize})`,
                     height: `calc(100% / ${boardSize})`,
                     left: `calc(100% / ${boardSize} * ${segment.x})`,
                     top: `calc(100% / ${boardSize} * ${segment.y})`,
+                    zIndex: 60 - Math.min(index, 50),
                 }}
             >
+                {jointBridge}
                 {SegmentComponent}
             </div>
         );
@@ -209,7 +249,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-60 md:pb-0">
+            <main className={`relative flex items-center justify-center w-full flex-grow ${controlType === 'on-screen' && !isGameOver ? 'pb-60 md:pb-0' : 'pb-4 md:pb-0'}`}>
                 <div className="relative bg-slate-800 rounded-lg shadow-inner shadow-black p-1"
                      style={{
                         display: 'grid',
@@ -231,8 +271,8 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                                 width: `calc(100% / ${boardSize})`, height: `calc(100% / ${boardSize})`,
                                 left: `calc(100% / ${boardSize} * ${f.x})`, top: `calc(100% / ${boardSize} * ${f.y})`,
                              }}>
-                                <div className="w-full h-full p-1">
-                                    <div className="w-full h-full bg-red-500 rounded-full animate-pulse"></div>
+                                <div className="w-full h-full p-0.5">
+                                    <SnakeFoodSvg className="animate-pulse" />
                                 </div>
                              </div>
                         ))}
@@ -251,19 +291,22 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                      </div>
 
                     {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
-                    {isGameOver && (
+                    {isGameOver && score === 0 && (
+                        <GameStartOverlay 
+                            gameId="snake"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    {isGameOver && score > 0 && (
                          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-10">
-                            {score > 0 && (
-                                <>
-                                    <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
-                                    <Leaderboard scores={highScores} />
-                                </>
-                            )}
+                            <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
+                            <Leaderboard scores={highScores} />
                             <button 
                                 onClick={startGame}
-                                className="px-6 py-3 bg-green-500 text-slate-900 font-bold rounded-md hover:bg-green-400 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="px-6 py-3 bg-green-500 text-slate-900 font-bold rounded-md hover:bg-green-400 focus:outline-none focus:ring-4 focus:ring-green-300 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4"
                             >
-                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
+                                PLAY AGAIN
                             </button>
                         </div>
                     )}
@@ -275,7 +318,7 @@ const SnakeGame: React.FC<SnakeGameProps> = ({ playerName, controlType, onBack }
                     <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
              )}
-            {controlType === 'on-screen' && <SnakeControls onDirectionChange={changeDirection} isGameOver={isGameOver || isPaused} />}
+            {controlType === 'on-screen' && !isGameOver && <SnakeControls onDirectionChange={changeDirection} isGameOver={isGameOver || isPaused} />}
         </div>
     );
 };

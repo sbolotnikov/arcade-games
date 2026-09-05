@@ -7,6 +7,8 @@ import GameStats from '../GameStats';
 import DoodleJumpControls from '../DoodleJumpControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
+import GameStartOverlay from '../GameStartOverlay';
+import { DoodlerSvg, DOODLE_PLATFORM_SVG } from '../../data/svgPool';
 
 interface DoodleJumpGameProps {
     playerName: string;
@@ -15,22 +17,30 @@ interface DoodleJumpGameProps {
 }
 
 const DoodlerCharacter: React.FC<{ doodler: ReturnType<typeof useDoodleJump>['doodler'] }> = ({ doodler }) => {
-    const getDoodlerSquashStyle = (vy: number) => {
+    // Dynamic stretch and shrink (squash-and-stretch) physics response
+    const getDoodlerSquashTransform = (vy: number) => {
         let scaleX = 1;
         let scaleY = 1;
-        if (vy < -8) {
-            scaleX = 1.2;
+        if (vy < -3) {
+            // Rising fast: EXTEND / STRETCH vertically
+            const intensity = Math.min(1, Math.abs(vy) / 16);
+            scaleY = 1 + intensity * 0.32; // Up to 1.32 tall
+            scaleX = 1 - intensity * 0.18; // Up to 0.82 thin
+        } else if (vy > 6) {
+            // Falling: slight stretch towards destination
+            scaleY = 1.08;
+            scaleX = 0.94;
+        } else {
+            // Rebound / Apex / Bounce impact: SQUASH wide & shrink short
+            scaleX = 1.25;
             scaleY = 0.8;
-        } else if (vy > 8) {
-            scaleX = 0.8;
-            scaleY = 1.2;
         }
-        return { transform: `scale(${scaleX}, ${scaleY})` };
+        return `scale(${scaleX}, ${scaleY})`;
     };
 
     return (
         <div 
-            className="absolute transition-transform duration-100"
+            className="absolute transition-transform duration-75 pointer-events-none"
             style={{
                 left: doodler.x,
                 top: doodler.y,
@@ -40,17 +50,10 @@ const DoodlerCharacter: React.FC<{ doodler: ReturnType<typeof useDoodleJump>['do
             }}
         >
             <div 
-                className="relative w-full h-full"
-                style={getDoodlerSquashStyle(doodler.vy)}
+                className="relative w-full h-full transition-transform duration-75 origin-bottom"
+                style={{ transform: getDoodlerSquashTransform(doodler.vy) }}
             >
-                <div className="absolute w-full h-full bg-green-400 rounded-t-full rounded-b-2xl border-2 border-green-600"></div>
-                <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-400 rounded-b-md border-2 border-gray-600"></div>
-                <div className="absolute w-3 h-3 bg-white rounded-full top-4 left-3 border border-black">
-                    <div className="absolute w-1.5 h-1.5 bg-black rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-                </div>
-                <div className="absolute w-3 h-3 bg-white rounded-full top-4 right-3 border border-black">
-                    <div className="absolute w-1.5 h-1.5 bg-black rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
-                </div>
+                <DoodlerSvg />
             </div>
         </div>
     );
@@ -165,7 +168,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-36 md:pb-0">
+            <main className={`relative flex items-center justify-center w-full flex-grow ${controlType === 'on-screen' && !isGameOver ? 'pb-36 md:pb-0' : 'pb-4 md:pb-0'}`}>
                 <div 
                     className="relative bg-slate-700 rounded-lg shadow-inner shadow-black overflow-hidden bg-repeat"
                     style={{
@@ -184,30 +187,34 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                     {platforms.map((platform, i) => (
                         <div 
                             key={i}
-                            className="absolute bg-green-500 rounded-md border-b-4 border-green-700"
+                            className="absolute drop-shadow-md pointer-events-none"
                             style={{
                                 left: platform.x,
                                 top: platform.y,
                                 width: platform.width,
                                 height: platform.height,
                             }}
+                            dangerouslySetInnerHTML={{ __html: DOODLE_PLATFORM_SVG }}
                         />
                     ))}
 
                     {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
-                    {isGameOver && (
-                         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4">
-                            {score > 0 && (
-                                <>
-                                    <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
-                                    <Leaderboard scores={highScores} />
-                                </>
-                            )}
+                    {isGameOver && score === 0 && (
+                        <GameStartOverlay 
+                            gameId="doodlejump"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    {isGameOver && score > 0 && (
+                         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-20">
+                            <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
+                            <Leaderboard scores={highScores} />
                             <button 
                                 onClick={startGame}
-                                className="px-6 py-3 bg-yellow-500 text-slate-900 font-bold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="px-6 py-3 bg-yellow-500 text-slate-900 font-bold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4"
                             >
-                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
+                                PLAY AGAIN
                             </button>
                         </div>
                     )}
@@ -219,7 +226,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                      <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
              )}
-            {controlType === 'on-screen' && <DoodleJumpControls onMoveLeft={moveLeft} onMoveRight={moveRight} onStop={stopMoving} isGameOver={isGameOver || isPaused} onHoldJump={holdJump} onReleaseJump={releaseJump}/>}
+            {controlType === 'on-screen' && !isGameOver && <DoodleJumpControls onMoveLeft={moveLeft} onMoveRight={moveRight} onStop={stopMoving} isGameOver={isGameOver || isPaused} onHoldJump={holdJump} onReleaseJump={releaseJump}/>}
         </div>
     );
 };

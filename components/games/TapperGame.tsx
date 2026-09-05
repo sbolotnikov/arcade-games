@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useHighScores } from '../../hooks/useHighScores';
 import Leaderboard from '../Leaderboard';
 import AudioPlayer from '../AudioPlayer';
 import PauseModal from '../PauseModal';
+import GameStartOverlay from '../GameStartOverlay';
 
 interface TapperGameProps {
     playerName: string;
@@ -43,85 +44,450 @@ const BAR_X_START = 120;
 
 // --- SVG Character Components ---
 
-const Bartender: React.FC<{ state: 'idle' | 'pouring' | 'moving'; barIndex: number; x: number }> = ({ state, barIndex, x }) => {
+// --- SVG Character Components ---
+
+type BartenderActionState = 'idle' | 'running' | 'moving' | 'pouring' | 'sliding' | 'catching' | 'cheering';
+
+const Bartender: React.FC<{ state: BartenderActionState; barIndex: number; x: number }> = ({ state, barIndex, x }) => {
     const y = BAR_Y_START + barIndex * BAR_SPACING;
+    const isMoving = state === 'running' || state === 'moving';
+
     return (
         <motion.g
-            animate={{ x, y: y - 85 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+            animate={{ x, y: y - 90 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
             className="bartender"
         >
             <g>
-                {/* Body */}
-                <rect x="10" y="20" width="40" height="60" rx="5" fill="#ef4444" stroke="#991b1b" strokeWidth="2" />
-                {/* Apron */}
-                <rect x="15" y="40" width="30" height="35" fill="#f8fafc" />
-                {/* Head */}
-                <circle cx="30" cy="15" r="15" fill="#fecaca" stroke="#991b1b" strokeWidth="2" />
-                {/* Eyes */}
-                <circle cx="25" cy="12" r="2" fill="#000" />
-                <circle cx="35" cy="12" r="2" fill="#000" />
-                {/* Mustache */}
-                <path d="M20 18 Q30 25 40 18" fill="none" stroke="#451a03" strokeWidth="3" strokeLinecap="round" />
-                
-                {/* Arms */}
-                {state === 'pouring' ? (
-                    <motion.path 
-                        d="M50 40 L70 30" 
-                        stroke="#fecaca" 
-                        strokeWidth="8" 
-                        strokeLinecap="round"
-                        animate={{ rotate: [0, -20, 0] }}
-                        transition={{ duration: 0.2 }}
-                    />
+                {/* Shadow */}
+                <ellipse cx="25" cy="92" rx="20" ry="5" fill="#000" opacity="0.4" />
+
+                {/* Legs with running animation */}
+                {isMoving ? (
+                    <motion.g 
+                        animate={{ rotate: [-15, 15] }}
+                        transition={{ repeat: Infinity, duration: 0.18, repeatType: 'reverse' }}
+                        style={{ transformOrigin: "25px 75px" }}
+                    >
+                        <line x1="18" y1="72" x2="12" y2="88" stroke="#09090b" strokeWidth="6" strokeLinecap="round" />
+                        <line x1="32" y1="72" x2="38" y2="88" stroke="#09090b" strokeWidth="6" strokeLinecap="round" />
+                        <rect x="8" y="86" width="10" height="6" rx="2" fill="#3f3f46" />
+                        <rect x="34" y="86" width="10" height="6" rx="2" fill="#3f3f46" />
+                    </motion.g>
                 ) : (
-                    <>
-                        <path d="M10 40 L-5 55" stroke="#fecaca" strokeWidth="8" strokeLinecap="round" />
-                        <path d="M50 40 L65 55" stroke="#fecaca" strokeWidth="8" strokeLinecap="round" />
-                    </>
+                    <g>
+                        <line x1="18" y1="72" x2="18" y2="88" stroke="#09090b" strokeWidth="6" strokeLinecap="round" />
+                        <line x1="32" y1="72" x2="32" y2="88" stroke="#09090b" strokeWidth="6" strokeLinecap="round" />
+                        <rect x="13" y="86" width="10" height="6" rx="2" fill="#3f3f46" />
+                        <rect x="27" y="86" width="10" height="6" rx="2" fill="#3f3f46" />
+                    </g>
+                )}
+
+                {/* Torso & Shirt */}
+                <rect x="8" y="24" width="34" height="50" rx="6" fill="#dc2626" stroke="#991b1b" strokeWidth="1.5" />
+                {/* Pinstripes */}
+                <line x1="15" y1="24" x2="15" y2="74" stroke="#ffffff" strokeWidth="1" opacity="0.7" />
+                <line x1="25" y1="24" x2="25" y2="74" stroke="#ffffff" strokeWidth="1" opacity="0.7" />
+                <line x1="35" y1="24" x2="35" y2="74" stroke="#ffffff" strokeWidth="1" opacity="0.7" />
+
+                {/* White Apron */}
+                <motion.path 
+                    d="M 12 44 L 38 44 L 36 75 L 14 75 Z" 
+                    fill="#f8fafc" 
+                    stroke="#cbd5e1" 
+                    strokeWidth="1.5"
+                    animate={{ skewX: isMoving ? [-4, 4] : [0, 0] }}
+                    transition={{ repeat: Infinity, duration: 0.2 }}
+                />
+                <rect x="20" y="52" width="10" height="12" rx="2" fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1" />
+
+                {/* Head & Face */}
+                <circle cx="25" cy="14" r="14" fill="#fecaca" stroke="#b91c1c" strokeWidth="1.5" />
+                {/* Hair Pompadour */}
+                <path d="M 12 12 C 12 2, 38 2, 38 12 C 34 5, 16 5, 12 12 Z" fill="#451a03" />
+                <circle cx="10" cy="15" r="3" fill="#fecaca" />
+                <circle cx="40" cy="15" r="3" fill="#fecaca" />
+
+                {/* Facial Features */}
+                <circle cx="20" cy="12" r="1.8" fill="#1e1b4b" />
+                <circle cx="30" cy="12" r="1.8" fill="#1e1b4b" />
+                {/* Rosy Cheeks */}
+                <circle cx="16" cy="17" r="2.5" fill="#f87171" opacity="0.6" />
+                <circle cx="34" cy="17" r="2.5" fill="#f87171" opacity="0.6" />
+                {/* Elaborate Twirled Mustache */}
+                <path d="M 14 18 Q 20 22 25 18 Q 30 22 36 18 Q 40 14 36 21 Q 30 25 25 21 Q 20 25 14 21 Q 10 14 14 18 Z" fill="#451a03" />
+                {/* Red Bowtie */}
+                <polygon points="21,24 29,24 25,27" fill="#b91c1c" />
+                <polygon points="21,30 29,30 25,27" fill="#b91c1c" />
+                <circle cx="25" cy="27" r="2" fill="#ef4444" />
+
+                {/* Animated Arms based on Action */}
+                {state === 'pouring' && (
+                    <g>
+                        {/* Pulling the tap handle */}
+                        <motion.line 
+                            x1="32" y1="32" x2="48" y2="12" 
+                            stroke="#fecaca" strokeWidth="6" strokeLinecap="round"
+                            animate={{ x2: [48, 44, 48], y2: [12, 18, 12] }}
+                            transition={{ duration: 0.15 }}
+                        />
+                        <motion.line 
+                            x1="12" y1="36" x2="38" y2="40" 
+                            stroke="#fecaca" strokeWidth="6" strokeLinecap="round"
+                        />
+                        {/* Foam Beer in hand */}
+                        <rect x="36" y="32" width="12" height="15" rx="2" fill="#fbbf24" stroke="#fff" strokeWidth="1" />
+                        <rect x="34" y="30" width="16" height="5" rx="2" fill="#ffffff" />
+                    </g>
+                )}
+
+                {state === 'sliding' && (
+                    <g>
+                        {/* Power pitch throw */}
+                        <motion.path 
+                            d="M 12 36 L 42 32 L 62 34" 
+                            stroke="#fecaca" strokeWidth="7" strokeLinecap="round" fill="none"
+                            animate={{ x: [0, 8, 0] }}
+                            transition={{ duration: 0.15 }}
+                        />
+                        {/* Speed lines */}
+                        <line x1="55" y1="28" x2="68" y2="28" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3,2" />
+                        <line x1="55" y1="38" x2="72" y2="38" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3,2" />
+                    </g>
+                )}
+
+                {state === 'catching' && (
+                    <g>
+                        {/* Both hands cupped forward to catch mug */}
+                        <path d="M 12 38 L 38 46 L 52 42" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" fill="none" />
+                        <path d="M 12 30 L 36 38 L 52 34" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" fill="none" />
+                        {/* Catch Sparkle */}
+                        <circle cx="54" cy="38" r="4" fill="#fbbf24" opacity="0.8" />
+                    </g>
+                )}
+
+                {state === 'cheering' && (
+                    <g>
+                        {/* Both arms thrown high into the air */}
+                        <motion.path 
+                            d="M 10 32 L -4 10 L -8 2" 
+                            stroke="#fecaca" strokeWidth="6" strokeLinecap="round" fill="none"
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ repeat: Infinity, duration: 0.25 }}
+                        />
+                        <motion.path 
+                            d="M 38 32 L 52 10 L 56 2" 
+                            stroke="#fecaca" strokeWidth="6" strokeLinecap="round" fill="none"
+                            animate={{ y: [0, -4, 0] }}
+                            transition={{ repeat: Infinity, duration: 0.25 }}
+                        />
+                        {/* Tip Dollar Sign / Stars */}
+                        <text x="21" y="-4" fill="#22c55e" fontSize="14" fontWeight="bold">$$$</text>
+                    </g>
+                )}
+
+                {state === 'idle' && (
+                    <g>
+                        {/* Left hand on hip */}
+                        <path d="M 10 34 L 0 46 L 8 50" stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round" fill="none" />
+                        {/* Right hand wiping counter with white towel */}
+                        <motion.g
+                            animate={{ x: [0, 8, -4, 0] }}
+                            transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                        >
+                            <path d="M 36 34 L 46 48" stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round" />
+                            <path d="M 44 48 L 52 54 L 42 58 Z" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
+                        </motion.g>
+                    </g>
+                )}
+
+                {isMoving && (
+                    <g>
+                        {/* Pumping running arms */}
+                        <motion.path 
+                            d="M 10 34 L -6 28 L -10 38" 
+                            stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round" fill="none"
+                            animate={{ rotate: [-20, 20] }}
+                            transition={{ repeat: Infinity, duration: 0.18, repeatType: 'reverse' }}
+                            style={{ transformOrigin: "10px 34px" }}
+                        />
+                        <motion.path 
+                            d="M 36 34 L 52 38 L 56 28" 
+                            stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round" fill="none"
+                            animate={{ rotate: [20, -20] }}
+                            transition={{ repeat: Infinity, duration: 0.18, repeatType: 'reverse' }}
+                            style={{ transformOrigin: "36px 34px" }}
+                        />
+                    </g>
                 )}
             </g>
         </motion.g>
     );
 };
 
+/**
+ * Elaborate, fully animated saloon customer figures switching between arms up and down
+ * as they yell for drinks, with 4 distinct rich character archetypes.
+ */
 const CustomerSVG: React.FC<{ state: 'approaching' | 'drinking' | 'leaving'; x: number; barIndex: number; variant: number }> = ({ state, x, barIndex, variant }) => {
     const y = BAR_Y_START + barIndex * BAR_SPACING;
-    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
-    const color = colors[variant % colors.length];
+    const v = variant % 4;
+
+    // Archetype styles
+    // 0: The Thirsty Cowboy (Brown Stetson, bandana, denim shirt)
+    // 1: The Punk Biker (Mohawk, leather studded vest, purple collar)
+    // 2: The Saloon Gentleman (Bowler hat, golden vest, bowtie, handlebar mustache)
+    // 3: The Sea Captain / Lumberjack (Orange beanie, thick bushy beard, red plaid flannel)
 
     return (
         <motion.g
-            initial={{ x: x, y: y - 85 }}
-            animate={{ x: x, y: y - 85 }}
+            initial={{ x, y: y - 90 }}
+            animate={{ x, y: y - 90 }}
             transition={{ type: 'tween', ease: 'linear', duration: 0.016 }}
         >
-            {/* Body */}
-            <rect x="0" y="20" width="40" height="60" rx="8" fill={color} stroke="#064e3b" strokeWidth="2" />
-            {/* Head */}
-            <circle cx="20" cy="15" r="15" fill="#fecaca" stroke="#064e3b" strokeWidth="2" />
-            {/* Face */}
-            <circle cx="15" cy="12" r="1.5" fill="#000" />
-            <circle cx="25" cy="12" r="1.5" fill="#000" />
-            
-            {/* Animation based on state */}
-            {state === 'drinking' ? (
-                <motion.path 
-                    d="M0 45 L-15 35" 
-                    stroke="#fecaca" 
-                    strokeWidth="6" 
-                    strokeLinecap="round"
-                    animate={{ rotate: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 0.5 }}
-                />
-            ) : (
+            {/* Ground Shadow */}
+            <ellipse cx="20" cy="94" rx="18" ry="4.5" fill="#000" opacity="0.35" />
+
+            {/* Walking Legs */}
+            <motion.g
+                animate={{ 
+                    rotate: state === 'approaching' ? [-8, 8] : state === 'leaving' ? [8, -8] : 0 
+                }}
+                transition={{ repeat: Infinity, duration: 0.25, repeatType: 'reverse' }}
+                style={{ transformOrigin: "20px 76px" }}
+            >
+                <line x1="14" y1="74" x2="10" y2="90" stroke="#18181b" strokeWidth="5.5" strokeLinecap="round" />
+                <line x1="26" y1="74" x2="30" y2="90" stroke="#18181b" strokeWidth="5.5" strokeLinecap="round" />
+                <rect x="6" y="88" width="8" height="5" rx="2" fill="#3f3f46" />
+                <rect x="28" y="88" width="8" height="5" rx="2" fill="#3f3f46" />
+            </motion.g>
+
+            {/* Torso & Clothing by Archetype */}
+            {v === 0 && (
+                // Cowboy
+                <g>
+                    <rect x="4" y="28" width="32" height="48" rx="5" fill="#1e3a8a" stroke="#172554" strokeWidth="1.5" />
+                    {/* Leather Vest */}
+                    <path d="M 4 28 L 14 28 L 12 70 L 4 70 Z" fill="#78350f" />
+                    <path d="M 36 28 L 26 28 L 28 70 L 36 70 Z" fill="#78350f" />
+                    {/* Belt & Golden Buckle */}
+                    <rect x="4" y="66" width="32" height="7" fill="#451a03" />
+                    <rect x="16" y="65" width="8" height="9" rx="1.5" fill="#eab308" stroke="#ca8a04" strokeWidth="1" />
+                    {/* Red Bandana Scarf */}
+                    <polygon points="12,25 28,25 20,35" fill="#dc2626" />
+                </g>
+            )}
+
+            {v === 1 && (
+                // Punk Biker
+                <g>
+                    <rect x="4" y="28" width="32" height="48" rx="5" fill="#581c87" stroke="#3b0764" strokeWidth="1.5" />
+                    {/* Studded Black Leather Vest */}
+                    <rect x="6" y="30" width="28" height="42" rx="3" fill="#18181b" />
+                    <circle cx="10" cy="36" r="1.5" fill="#cbd5e1" />
+                    <circle cx="10" cy="46" r="1.5" fill="#cbd5e1" />
+                    <circle cx="30" cy="36" r="1.5" fill="#cbd5e1" />
+                    <circle cx="30" cy="46" r="1.5" fill="#cbd5e1" />
+                    {/* Skull Patch */}
+                    <circle cx="20" cy="48" r="4" fill="#f8fafc" />
+                    <rect x="18" y="51" width="4" height="2" fill="#f8fafc" />
+                </g>
+            )}
+
+            {v === 2 && (
+                // Saloon Gentleman
+                <g>
+                    <rect x="4" y="28" width="32" height="48" rx="5" fill="#065f46" stroke="#064e3b" strokeWidth="1.5" />
+                    {/* Gold Brocade Vest & Pocket Watch */}
+                    <rect x="8" y="32" width="24" height="38" rx="3" fill="#d97706" />
+                    <path d="M 12 48 Q 20 54 28 48" stroke="#fef08a" strokeWidth="1.5" fill="none" />
+                    {/* Red Bowtie */}
+                    <polygon points="16,27 24,27 20,30" fill="#b91c1c" />
+                </g>
+            )}
+
+            {v === 3 && (
+                // Sea Captain / Lumberjack
+                <g>
+                    <rect x="4" y="28" width="32" height="48" rx="5" fill="#b91c1c" stroke="#7f1d1d" strokeWidth="1.5" />
+                    {/* Plaid Crosshatch */}
+                    <line x1="4" y1="40" x2="36" y2="40" stroke="#450a0a" strokeWidth="2" opacity="0.6" />
+                    <line x1="4" y1="55" x2="36" y2="55" stroke="#450a0a" strokeWidth="2" opacity="0.6" />
+                    <line x1="14" y1="28" x2="14" y2="76" stroke="#450a0a" strokeWidth="2" opacity="0.6" />
+                    <line x1="26" y1="28" x2="26" y2="76" stroke="#450a0a" strokeWidth="2" opacity="0.6" />
+                    {/* Suspenders */}
+                    <line x1="10" y1="28" x2="10" y2="76" stroke="#78350f" strokeWidth="3" />
+                    <line x1="30" y1="28" x2="30" y2="76" stroke="#78350f" strokeWidth="3" />
+                </g>
+            )}
+
+            {/* Head & Facial Complex */}
+            <circle cx="20" cy="16" r="13" fill="#fecaca" stroke="#991b1b" strokeWidth="1.2" />
+
+            {/* Headwear & Hair by Archetype */}
+            {v === 0 && (
+                // Cowboy Hat
+                <g>
+                    {/* Hat Brim */}
+                    <ellipse cx="20" cy="9" rx="22" ry="5" fill="#78350f" stroke="#451a03" strokeWidth="1.5" />
+                    {/* Hat Crown */}
+                    <path d="M 8 8 Q 20 -4 32 8 Z" fill="#92400e" stroke="#451a03" strokeWidth="1.5" />
+                    {/* Hat Band */}
+                    <path d="M 8 8 L 32 8" stroke="#ef4444" strokeWidth="2.5" />
+                </g>
+            )}
+
+            {v === 1 && (
+                // Spiky Punk Mohawk
+                <g>
+                    <path d="M 18 -6 L 22 -6 L 24 8 L 16 8 Z" fill="#06b6d4" stroke="#0891b2" strokeWidth="1" />
+                    <path d="M 14 -1 L 18 -1 L 20 8 L 12 8 Z" fill="#ec4899" />
+                    <path d="M 22 -1 L 26 -1 L 28 8 L 20 8 Z" fill="#ec4899" />
+                    {/* Sunglasses */}
+                    <rect x="10" y="11" width="9" height="6" rx="1.5" fill="#09090b" />
+                    <rect x="21" y="11" width="9" height="6" rx="1.5" fill="#09090b" />
+                    <line x1="19" y1="13" x2="21" y2="13" stroke="#09090b" strokeWidth="1.5" />
+                </g>
+            )}
+
+            {v === 2 && (
+                // Bowler Hat & Monocle
+                <g>
+                    <ellipse cx="20" cy="9" rx="16" ry="4" fill="#18181b" />
+                    <path d="M 10 9 C 10 0, 30 0, 30 9 Z" fill="#27272a" />
+                    {/* Monocle */}
+                    <circle cx="15" cy="14" r="4" fill="#e0f2fe" opacity="0.6" stroke="#ca8a04" strokeWidth="1.2" />
+                    {/* Gentleman Curled Mustache */}
+                    <path d="M 13 19 Q 20 22 27 19 Q 31 16 28 22 Q 20 24 13 19 Z" fill="#27272a" />
+                </g>
+            )}
+
+            {v === 3 && (
+                // Sailor / Lumberjack Beanie & Bushy Beard
+                <g>
+                    <ellipse cx="20" cy="7" rx="15" ry="5" fill="#ea580c" />
+                    <path d="M 8 7 C 8 0, 32 0, 32 7 Z" fill="#c2410c" />
+                    {/* Full Bushy Beard */}
+                    <path d="M 8 16 C 8 28, 32 28, 32 16 Q 20 27 8 16 Z" fill="#d97706" />
+                </g>
+            )}
+
+            {/* Standard Eyes for non-sunglass patrons */}
+            {v !== 1 && (
+                <g>
+                    <circle cx="15" cy="13" r="1.5" fill="#0f172a" />
+                    <circle cx="25" cy="13" r="1.5" fill="#0f172a" />
+                </g>
+            )}
+
+            {/* Yelling Mouth animation when approaching */}
+            {state === 'approaching' && (
+                <g>
+                    <motion.ellipse 
+                        cx="20" cy="19" 
+                        animate={{ rx: [2.5, 4.5, 2.5], ry: [2, 5, 2] }}
+                        transition={{ repeat: Infinity, duration: 0.35 }}
+                        fill="#450a0a" 
+                    />
+                    {/* Tiny Comic Yell Speech Bubble */}
+                    <motion.g
+                        animate={{ y: [0, -4, 0], opacity: [0.85, 1, 0.85] }}
+                        transition={{ repeat: Infinity, duration: 0.35 }}
+                    >
+                        <rect x="-8" y="-20" width="22" height="13" rx="4" fill="#fef08a" stroke="#ca8a04" strokeWidth="1" />
+                        <polygon points="2,-7 6,-7 2,-3" fill="#fef08a" />
+                        <text x="3" y="-11" textAnchor="middle" fontSize="9" fontWeight="900" fill="#78350f">🍺!</text>
+                    </motion.g>
+                </g>
+            )}
+
+            {state === 'drinking' && (
+                <g>
+                    {/* Smiling drinking eyes */}
+                    <path d="M 12 13 Q 15 11 18 13" stroke="#450a0a" strokeWidth="1.5" fill="none" />
+                    <path d="M 22 13 Q 25 11 28 13" stroke="#450a0a" strokeWidth="1.5" fill="none" />
+                    {/* Rosy blush */}
+                    <circle cx="10" cy="18" r="3" fill="#f87171" opacity="0.8" />
+                    <circle cx="30" cy="18" r="3" fill="#f87171" opacity="0.8" />
+                </g>
+            )}
+
+            {state === 'leaving' && (
+                <g>
+                    {/* Satisfied smiling mouth */}
+                    <path d="M 14 18 Q 20 24 26 18" stroke="#450a0a" strokeWidth="2" fill="none" strokeLinecap="round" />
+                    <circle cx="11" cy="17" r="2.5" fill="#22c55e" opacity="0.6" />
+                    <circle cx="29" cy="17" r="2.5" fill="#22c55e" opacity="0.6" />
+                </g>
+            )}
+
+            {/* =======================================================
+                ARMS ANIMATIONS:
+                - Approaching: Switches between Position 1 (Arms DOWN pounding bar)
+                  and Position 2 (Arms UP waving frantically for a drink)
+                - Drinking: Holding mug to lips, tipping back
+                - Leaving: Satisfied wave goodbye
+               ======================================================= */}
+            {state === 'approaching' && (
+                <g>
+                    {/* Left Arm: Cycles between Down (pounding counter) and Up (raised high yelling) */}
+                    <motion.g
+                        animate={{ rotate: [-85, 20, -85] }}
+                        transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut" }}
+                        style={{ transformOrigin: "6px 36px" }}
+                    >
+                        <line x1="6" y1="36" x2="-8" y2="54" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" />
+                        <circle cx="-8" cy="54" r="4" fill="#fecaca" />
+                    </motion.g>
+
+                    {/* Right Arm: Cycles between Down (pounding counter) and Up (raised high yelling) */}
+                    <motion.g
+                        animate={{ rotate: [85, -20, 85] }}
+                        transition={{ repeat: Infinity, duration: 0.35, ease: "easeInOut" }}
+                        style={{ transformOrigin: "34px 36px" }}
+                    >
+                        <line x1="34" y1="36" x2="48" y2="54" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" />
+                        <circle cx="48" cy="54" r="4" fill="#fecaca" />
+                    </motion.g>
+                </g>
+            )}
+
+            {state === 'drinking' && (
                 <motion.g
-                    animate={{ rotate: state === 'approaching' ? [-5, 5] : [0, 0] }}
-                    transition={{ repeat: Infinity, duration: 0.3, repeatType: 'reverse' }}
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{ repeat: Infinity, duration: 0.4 }}
                 >
-                    <path d="M5 80 L0 95" stroke={color} strokeWidth="6" strokeLinecap="round" />
-                    <path d="M35 80 L40 95" stroke={color} strokeWidth="6" strokeLinecap="round" />
+                    {/* Both arms holding beer mug up to mouth */}
+                    <line x1="6" y1="38" x2="12" y2="24" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" />
+                    <line x1="34" y1="38" x2="24" y2="24" stroke="#fecaca" strokeWidth="6" strokeLinecap="round" />
+                    {/* Foaming Stein at Mouth */}
+                    <rect x="10" y="16" width="16" height="18" rx="2" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+                    <rect x="8" y="14" width="20" height="6" rx="2" fill="#ffffff" />
+                    {/* Splash drops */}
+                    <circle cx="28" cy="14" r="1.5" fill="#fef08a" />
+                    <circle cx="8" cy="12" r="1.5" fill="#fef08a" />
                 </motion.g>
+            )}
+
+            {state === 'leaving' && (
+                <g>
+                    {/* Left arm swinging at side */}
+                    <motion.line 
+                        x1="6" y1="38" x2="-2" y2="54" 
+                        stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round"
+                        animate={{ rotate: [-10, 10] }}
+                        transition={{ repeat: Infinity, duration: 0.3, repeatType: 'reverse' }}
+                    />
+                    {/* Right arm waving friendly goodbye */}
+                    <motion.g
+                        animate={{ rotate: [-20, 20] }}
+                        transition={{ repeat: Infinity, duration: 0.3, repeatType: 'reverse' }}
+                        style={{ transformOrigin: "34px 38px" }}
+                    >
+                        <line x1="34" y1="38" x2="46" y2="24" stroke="#fecaca" strokeWidth="5.5" strokeLinecap="round" />
+                        <circle cx="46" cy="24" r="3.5" fill="#fecaca" />
+                    </motion.g>
+                </g>
             )}
         </motion.g>
     );
@@ -213,7 +579,7 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
     const [level, setLevel] = useState(1);
     const [showLevelUp, setShowLevelUp] = useState(false);
     
-    const [bartender, setBartender] = useState({ barIndex: 0, x: BAR_X_START - 60, state: 'idle' as 'idle' | 'pouring' | 'moving' });
+    const [bartender, setBartender] = useState<{ barIndex: number; x: number; state: BartenderActionState }>({ barIndex: 0, x: BAR_X_START - 60, state: 'idle' });
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [mugs, setMugs] = useState<Mug[]>([]);
     const [tips, setTips] = useState<Tip[]>([]);
@@ -222,7 +588,7 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
     const customersRef = useRef<Customer[]>([]);
     const mugsRef = useRef<Mug[]>([]);
     const tipsRef = useRef<Tip[]>([]);
-    const bartenderRef = useRef({ barIndex: 0, x: BAR_X_START - 60, state: 'idle' as 'idle' | 'pouring' | 'moving' });
+    const bartenderRef = useRef<{ barIndex: number; x: number; state: BartenderActionState }>({ barIndex: 0, x: BAR_X_START - 60, state: 'idle' });
     const gameStateRef = useRef<'start' | 'playing' | 'gameover'>('start');
     const isPausedRef = useRef(false);
     const levelRef = useRef(1);
@@ -289,16 +655,21 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
 
     const handleAction = useCallback(() => {
         if (gameStateRef.current !== 'playing') return;
-        if (bartenderRef.current.state === 'pouring') return;
+        if (bartenderRef.current.state === 'pouring' || bartenderRef.current.state === 'sliding') return;
         // Can only pour at the taps (left end)
         if (bartenderRef.current.x > BAR_X_START - 40) return;
 
+        // Sequence: Pour from tap (140ms) -> Slide throw mug down bar (160ms) -> Idle
         setBartender(prev => ({ ...prev, state: 'pouring' }));
         bartenderRef.current.state = 'pouring';
         setTimeout(() => {
-            setBartender(prev => ({ ...prev, state: 'idle' }));
-            bartenderRef.current.state = 'idle';
-        }, 150);
+            setBartender(prev => ({ ...prev, state: 'sliding' }));
+            bartenderRef.current.state = 'sliding';
+            setTimeout(() => {
+                setBartender(prev => ({ ...prev, state: 'idle' }));
+                bartenderRef.current.state = 'idle';
+            }, 160);
+        }, 140);
 
         const id = nextIdRef.current++;
         const newMug: Mug = {
@@ -326,44 +697,66 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
         if (scoreGained > 0) {
             setScore(s => s + scoreGained);
             setTips([...tipsRef.current]);
+            // Cheering pose when collecting big tip!
+            setBartender(prev => ({ ...prev, state: 'cheering' }));
+            bartenderRef.current.state = 'cheering';
+            setTimeout(() => {
+                setBartender(prev => ({ ...prev, state: 'idle' }));
+                bartenderRef.current.state = 'idle';
+            }, 450);
         }
+    }, []);
+
+    const triggerMoveAnim = useCallback(() => {
+        setBartender(prev => ({ ...prev, state: 'running' }));
+        bartenderRef.current.state = 'running';
+        setTimeout(() => {
+            if (bartenderRef.current.state === 'running') {
+                setBartender(prev => ({ ...prev, state: 'idle' }));
+                bartenderRef.current.state = 'idle';
+            }
+        }, 220);
     }, []);
 
     const moveUp = useCallback(() => {
         if (gameStateRef.current !== 'playing') return;
         setBartender(prev => {
-            const next = { ...prev, barIndex: Math.max(0, prev.barIndex - 1), x: BAR_X_START - 60 };
+            const next = { ...prev, barIndex: Math.max(0, prev.barIndex - 1), x: BAR_X_START - 60, state: 'running' as BartenderActionState };
             bartenderRef.current = next;
             return next;
         });
-    }, []);
+        triggerMoveAnim();
+    }, [triggerMoveAnim]);
 
     const moveDown = useCallback(() => {
         if (gameStateRef.current !== 'playing') return;
         setBartender(prev => {
-            const next = { ...prev, barIndex: Math.min(BAR_COUNT - 1, prev.barIndex + 1), x: BAR_X_START - 60 };
+            const next = { ...prev, barIndex: Math.min(BAR_COUNT - 1, prev.barIndex + 1), x: BAR_X_START - 60, state: 'running' as BartenderActionState };
             bartenderRef.current = next;
             return next;
         });
-    }, []);
+        triggerMoveAnim();
+    }, [triggerMoveAnim]);
 
     const moveLeft = useCallback(() => {
         if (gameStateRef.current !== 'playing') return;
         setBartender(prev => {
-            const next = { ...prev, x: Math.max(BAR_X_START - 60, prev.x - 35) };
+            const next = { ...prev, x: Math.max(BAR_X_START - 60, prev.x - 35), state: 'running' as BartenderActionState };
             bartenderRef.current = next;
             return next;
         });
-    }, []);
+        triggerMoveAnim();
+    }, [triggerMoveAnim]);
 
     const moveRight = useCallback(() => {
         if (gameStateRef.current !== 'playing') return;
         setBartender(prev => {
-            const next = { ...prev, x: Math.min(BAR_X_START + BAR_LENGTH - 60, prev.x + 35) };
+            const next = { ...prev, x: Math.min(BAR_X_START + BAR_LENGTH - 60, prev.x + 35), state: 'running' as BartenderActionState };
             bartenderRef.current = next;
             return next;
         });
-    }, []);
+        triggerMoveAnim();
+    }, [triggerMoveAnim]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -463,6 +856,14 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
 
                 if (isAtSameBar && isCloseEnough) {
                     scoreGainedThisFrame += 100;
+                    setBartender(prev => ({ ...prev, state: 'catching' }));
+                    bartenderRef.current.state = 'catching';
+                    setTimeout(() => {
+                        if (bartenderRef.current.state === 'catching') {
+                            setBartender(prev => ({ ...prev, state: 'idle' }));
+                            bartenderRef.current.state = 'idle';
+                        }
+                    }, 280);
                 } else if (nextX < BAR_X_START - 40) {
                     livesLostThisFrame++;
                 } else {
@@ -687,47 +1088,11 @@ const TapperGame: React.FC<TapperGameProps> = ({ playerName, controlType, onBack
                 {/* Overlays */}
                 <AnimatePresence>
                     {gameState === 'start' && (
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center text-center p-8 z-40"
-                        >
-                            <motion.h2 
-                                initial={{ y: -50, scale: 0.5 }}
-                                animate={{ y: 0, scale: 1 }}
-                                className="text-8xl font-black text-cyan-400 mb-4 tracking-tighter italic" 
-                                style={{ textShadow: '6px 6px 0px #0e7490, 0 0 30px rgba(6,182,212,0.4)' }}
-                            >
-                                TAPPER
-                            </motion.h2>
-                            <p className="text-cyan-200 mb-10 max-w-md leading-relaxed text-lg">
-                                The rush is on! Serve the thirsty crowd, catch the mugs, and rake in the tips.
-                            </p>
-                            <div className="grid grid-cols-2 gap-12 mb-12 text-left">
-                                <div className="space-y-3">
-                                    <h3 className="text-yellow-400 font-black border-b-2 border-yellow-400/30 pb-1 tracking-widest text-xs">CONTROLS</h3>
-                                    <p className="text-cyan-300 font-bold">↑/↓ : Switch Bar</p>
-                                    <p className="text-cyan-300 font-bold">SPACE : Pour Drink</p>
-                                </div>
-                                <div className="space-y-3">
-                                    <h3 className="text-yellow-400 font-black border-b-2 border-yellow-400/30 pb-1 tracking-widest text-xs">SCORING</h3>
-                                    <p className="text-cyan-300 font-bold">Serve: 50 pts</p>
-                                    <p className="text-cyan-300 font-bold">Catch: 100 pts</p>
-                                    <p className="text-cyan-300 font-bold">Tips: 500 pts</p>
-                                </div>
-                            </div>
-                            <motion.button 
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={resetGame}
-                                className="px-16 py-5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-3xl rounded-full transition-all shadow-[0_0_30px_rgba(6,182,212,0.6)] mb-8"
-                            >
-                                START SERVICE
-                            </motion.button>
-                            
-                            <Leaderboard scores={highScores.slice(0, 5)} />
-                        </motion.div>
+                        <GameStartOverlay 
+                            gameId="tapper"
+                            controlType={controlType}
+                            onStart={resetGame}
+                        />
                     )}
 
                     {gameState === 'gameover' && (

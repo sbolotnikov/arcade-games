@@ -10,6 +10,8 @@ import GameStats from '../GameStats';
 import DiggerControls from '../DiggerControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
+import GameStartOverlay from '../GameStartOverlay';
+import { SVG_POOL } from '../../data/svgPool';
 
 interface DiggerGameProps {
     playerName: string;
@@ -20,50 +22,46 @@ interface DiggerGameProps {
 const GRID_WIDTH = 20;
 const GRID_HEIGHT = 15;
 
-const getRotation = (dir: Direction) => {
-    if (dir === 'UP') return '-90deg';
-    if (dir === 'DOWN') return '90deg';
-    if (dir === 'LEFT') return '180deg';
-    return '0deg';
+const getRotationStyle = (dir: Direction): React.CSSProperties => {
+    switch (dir) {
+        case 'UP': return { transform: 'rotate(-90deg)' };
+        case 'DOWN': return { transform: 'rotate(90deg)' };
+        case 'LEFT': return { transform: 'scaleX(-1)' };
+        case 'RIGHT':
+        default: return { transform: 'none' };
+    }
 };
 
-const PlayerIcon: React.FC<{ player: DiggerPlayerState }> = React.memo(({ player }) => (
-    <div className="relative w-full h-full" style={{ transform: `rotate(${getRotation(player.direction)})` }}>
-        <div className="w-10/12 h-8/12 bg-yellow-400 absolute bottom-0 left-1/2 -translate-x-1/2 rounded-t-md border-t-2 border-l-2 border-yellow-200 shadow-md"></div>
-        <div className="w-full h-1/4 bg-gray-800 absolute bottom-0 rounded-b-sm"></div>
-        <div className="w-5/12 h-4/12 bg-sky-400 absolute top-1 left-1/2 -translate-x-[90%] border border-sky-600 rounded-sm flex items-center justify-center">
-            <div className="w-1 h-1 bg-white rounded-full"></div>
-        </div>
-        <div className="w-7/12 h-4/12 bg-gray-600 absolute bottom-[22%] right-[-15%] rounded-md flex items-center justify-around animate-spin-fast">
-             <div className="w-px h-full bg-gray-800"></div>
-             <div className="w-full h-px bg-gray-800"></div>
-        </div>
-        <div className="w-1 h-2 bg-gray-600 absolute top-1 left-1"></div>
-        <div className="w-1 h-1 bg-gray-400 rounded-full absolute top-0 left-0 animate-exhaust"></div>
-    </div>
+const PlayerIcon: React.FC<{ player: DiggerPlayerState; frame: 1 | 2 }> = React.memo(({ player, frame }) => (
+    <div 
+        className="w-full h-full flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] transition-transform duration-100" 
+        style={getRotationStyle(player.direction)}
+        dangerouslySetInnerHTML={{ 
+            __html: frame === 2 ? SVG_POOL.digger.diggerPos2 : SVG_POOL.digger.diggerPos1 
+        }}
+    />
 ));
-PlayerIcon.displayName = 'PlayerIcon';
 
-const EnemyIcon: React.FC<{ enemy: DiggerEnemyState }> = React.memo(({ enemy }) => (
-    <div className={`relative w-full h-full ${enemy.isSpawning ? 'animate-spawn-in' : ''}`}>
-        <div className={`absolute w-full h-full rounded-full ${enemy.type === 'hobbin' ? 'bg-red-500' : 'bg-green-500'} border-2 ${enemy.type === 'hobbin' ? 'border-red-700' : 'border-green-700'}`}></div>
-        <div className="absolute w-1/4 h-1/4 bg-white rounded-full top-1/4 left-1/4">
-             <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
-        </div>
-         <div className="absolute w-1/4 h-1/4 bg-white rounded-full top-1/4 right-1/4">
-             <div className="absolute w-1/2 h-1/2 bg-black rounded-full top-1/4 left-1/4"></div>
-        </div>
-    </div>
-));
-EnemyIcon.displayName = 'EnemyIcon';
+const EnemyIcon: React.FC<{ enemy: DiggerEnemyState; frame: 1 | 2 }> = React.memo(({ enemy, frame }) => {
+    const isHobbin = enemy.type === 'hobbin';
+    const svgContent = isHobbin 
+        ? (frame === 2 ? SVG_POOL.digger.hobbinPos2 : SVG_POOL.digger.hobbinPos1)
+        : (frame === 2 ? SVG_POOL.digger.nobbinPos2 : SVG_POOL.digger.nobbinPos1);
 
-const GoldBagIcon: React.FC<{bag: DiggerGoldState}> = React.memo(({bag}) => (
-    <div className={`relative w-full h-full ${bag.isFalling ? 'animate-bounce' : ''}`}>
-        <div className="absolute w-10/12 h-10/12 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-500 border-2 border-yellow-700 rounded-b-full rounded-t-md"></div>
-        <div className="absolute text-yellow-900 font-bold top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs select-none">$</div>
-    </div>
+    return (
+        <div 
+            className={`w-full h-full flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] ${enemy.isSpawning ? 'animate-spawn-in' : ''}`}
+            dangerouslySetInnerHTML={{ __html: svgContent }}
+        />
+    );
+});
+
+const GoldBagIcon: React.FC<{ bag: DiggerGoldState }> = React.memo(({ bag }) => (
+    <div 
+        className={`w-full h-full flex items-center justify-center filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] ${bag.isFalling ? 'animate-bounce' : ''}`}
+        dangerouslySetInnerHTML={{ __html: SVG_POOL.digger.goldBag }}
+    />
 ));
-GoldBagIcon.displayName = 'GoldBagIcon';
 
 
 const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack }) => {
@@ -78,6 +76,16 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
     const gameAreaRef = useRef<HTMLDivElement>(null);
     const gameBoardRef = useRef<HTMLDivElement>(null);
     const [cellSize, setCellSize] = useState(28);
+    const [animFrame, setAnimFrame] = useState<1 | 2>(1);
+
+    // 2-Position alternating animation ticker (260ms per frame)
+    useEffect(() => {
+        if (isPaused || isGameOver) return;
+        const timer = setInterval(() => {
+            setAnimFrame(prev => prev === 1 ? 2 : 1);
+        }, 260);
+        return () => clearInterval(timer);
+    }, [isPaused, isGameOver]);
 
      useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
@@ -201,7 +209,7 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                 <GameStats title="EMERALDS" value={emeraldsRemaining} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-56 md:pb-0 p-1">
+            <main className={`relative flex items-center justify-center w-full flex-grow ${controlType === 'on-screen' && !isGameOver ? 'pb-56 md:pb-0' : 'pb-4 md:pb-0'} p-1`}>
                 <div 
                     ref={gameBoardRef}
                     className="relative bg-amber-900 bg-opacity-40 shadow-inner shadow-black"
@@ -215,21 +223,46 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                         <>
                             {grid.map((row, y) => row.map((cell, x) => {
                                 let content = null;
-                                if(cell === 'DIRT') content = <div className="w-full h-full bg-amber-800" />;
-                                else if (cell === 'TUNNEL') content = <div className="w-full h-full bg-slate-800" />;
-                                else if (cell === 'EMERALD') content = <div className="w-full h-full bg-slate-800 flex items-center justify-center"><div className="w-3/4 h-3/4 bg-emerald-400 rounded-sm transform rotate-45 border-2 border-emerald-200" /></div>;
-                                else if (cell === 'GOLD') content = <div className="w-full h-full bg-slate-800 flex items-center justify-center"><div className="w-3/4 h-3/4 bg-yellow-400 rounded-full" /></div>;
-                                else if (cell === 'ROCK') content = <div className="w-full h-full bg-slate-600 border-2 border-slate-500 rounded-sm" />;
+                                if (cell === 'DIRT') {
+                                    content = (
+                                        <div 
+                                            className="w-full h-full overflow-hidden" 
+                                            dangerouslySetInnerHTML={{ __html: SVG_POOL.digger.dirt }} 
+                                        />
+                                    );
+                                } else if (cell === 'TUNNEL') {
+                                    content = <div className="w-full h-full bg-slate-950/80 border border-slate-800/40" />;
+                                } else if (cell === 'EMERALD') {
+                                    content = (
+                                        <div className="w-full h-full bg-slate-950/80 flex items-center justify-center p-0.5">
+                                            <div 
+                                                className="w-full h-full filter drop-shadow-[0_0_4px_rgba(16,185,129,0.8)]"
+                                                dangerouslySetInnerHTML={{ __html: SVG_POOL.digger.emerald }} 
+                                            />
+                                        </div>
+                                    );
+                                } else if (cell === 'GOLD') {
+                                    content = (
+                                        <div className="w-full h-full bg-slate-950/80 flex items-center justify-center p-0.5">
+                                            <div 
+                                                className="w-full h-full filter drop-shadow-[0_0_4px_rgba(234,179,8,0.8)]"
+                                                dangerouslySetInnerHTML={{ __html: SVG_POOL.digger.goldBroken }} 
+                                            />
+                                        </div>
+                                    );
+                                } else if (cell === 'ROCK') {
+                                    content = <div className="w-full h-full bg-slate-700 border-2 border-slate-600 rounded-sm shadow-inner" />;
+                                }
                                 
                                 return <div key={`${y}-${x}`} className="absolute" style={{top: y * cellSize, left: x * cellSize, width: cellSize, height: cellSize}}>{content}</div>
                             }))}
 
-                            <div className="absolute" style={{top: player.y * cellSize, left: player.x * cellSize, width: cellSize, height: cellSize}}>
-                                <PlayerIcon player={player} />
+                            <div className="absolute transition-transform duration-75" style={{top: player.y * cellSize, left: player.x * cellSize, width: cellSize, height: cellSize}}>
+                                <PlayerIcon player={player} frame={animFrame} />
                             </div>
                             {enemies.map(enemy => (
                                 <div key={enemy.id} className="absolute transition-all duration-150" style={{top: enemy.y * cellSize, left: enemy.x * cellSize, width: cellSize, height: cellSize}}>
-                                    <EnemyIcon enemy={enemy} />
+                                    <EnemyIcon enemy={enemy} frame={animFrame} />
                                 </div>
                             ))}
                             {goldBags.map(bag => (
@@ -239,15 +272,23 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                             ))}
                             {bullets.map(bullet => (
                                 <div key={bullet.id} className="absolute" style={{top: bullet.y * cellSize, left: bullet.x * cellSize, width: cellSize, height: cellSize}}>
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <div className="w-1/2 h-1/2 bg-cyan-400 rounded-full animate-ping" />
-                                    </div>
+                                    <div 
+                                        className="w-full h-full flex items-center justify-center filter drop-shadow-[0_0_6px_rgba(56,189,248,0.9)] animate-pulse"
+                                        dangerouslySetInnerHTML={{ __html: SVG_POOL.digger.fireball }} 
+                                    />
                                 </div>
                             ))}
                         </>
                     )}
                     {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
-                    {(isGameOver || gameMessage) && !isPaused && (
+                    {isGameOver && score === 0 && lives === 3 && (
+                        <GameStartOverlay 
+                            gameId="digger"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    {(isGameOver || gameMessage) && !isPaused && !(isGameOver && score === 0 && lives === 3) && (
                         <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-10">
                             {gameMessage && <div className="text-4xl font-bold text-white mb-4 animate-pulse">{gameMessage}</div>}
                             {isGameOver && !gameMessage.includes("WIN") && (
@@ -255,9 +296,9 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                                     <Leaderboard scores={highScores} />
                                     <button 
                                         onClick={startGame}
-                                        className="px-6 py-3 bg-yellow-500 text-slate-900 font-bold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                        className="px-6 py-3 bg-yellow-500 text-slate-900 font-bold rounded-md hover:bg-yellow-400 focus:outline-none focus:ring-4 focus:ring-yellow-300 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4"
                                     >
-                                        {score > 0 || lives < 3 ? 'PLAY AGAIN' : 'START GAME'}
+                                        PLAY AGAIN
                                     </button>
                                 </>
                             )}
@@ -271,7 +312,7 @@ const DiggerGame: React.FC<DiggerGameProps> = ({ playerName, controlType, onBack
                     <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
              )}
-            {controlType === 'on-screen' && <DiggerControls onDirectionChange={changeDirection} onFire={fire} isGameOver={isGameOver || isPaused} />}
+            {controlType === 'on-screen' && !isGameOver && <DiggerControls onDirectionChange={changeDirection} onFire={fire} isGameOver={isGameOver || isPaused} />}
         </div>
     );
 };

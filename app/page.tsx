@@ -14,6 +14,8 @@ import ArkanoidGame from '@/components/games/ArkanoidGame';
 import ColumnsGame from '@/components/games/ColumnsGame';
 import TapperGame from '@/components/games/TapperGame';
 import SuperMarioGame from '@/components/games/SuperMarioGame';
+import { OthelloGame } from '@/components/games/OthelloGame';
+import { RenjuGame } from '@/components/games/RenjuGame';
 
 
 const App: React.FC = () => {
@@ -139,7 +141,18 @@ const App: React.FC = () => {
                             playerName={playerName}
                             controlType={controlType}
                             onBack={handleBackToGames}
-                        />;                        
+                        />;
+                return <OthelloGame
+                            playerName={playerName}
+                            controlType={controlType}
+                            onBack={handleBackToGames}
+                        />;
+            case 'renju':
+                return <RenjuGame
+                            playerName={playerName || 'Player'}
+                            controlType={controlType || 'keyboard'}
+                            onBack={handleBackToGames}
+                        />;                                    
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../../hooks/useGame';
 import { useHighScores } from '../../hooks/useHighScores';
 import Board from '../Board';
@@ -8,8 +8,13 @@ import Controls from '../Controls';
 import Leaderboard from '../Leaderboard';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
+import GameStartOverlay from '../GameStartOverlay';
 import { BOARD_HEIGHT, BOARD_WIDTH } from '../../constants';
 
+interface Score {
+    name: string;
+    score: number;
+}
 
 interface TetrisGameProps {
     playerName: string;
@@ -142,32 +147,34 @@ const TetrisGame: React.FC<TetrisGameProps> = ({ playerName, controlType, onBack
                  )}
             </aside>
             
-            <main className="relative min-h-0 flex items-center justify-center pb-28 md:pb-0
-                           md:row-start-2 md:col-start-1">
+            <main className={`relative min-h-0 flex items-center justify-center ${controlType === 'on-screen' && !isGameOver ? 'pb-28 md:pb-0' : 'pb-4 md:pb-0'}
+                           md:row-start-2 md:col-start-1`}>
                 <div className="relative h-full w-auto max-w-full" style={{ aspectRatio: `${BOARD_WIDTH} / ${BOARD_HEIGHT}` }}>
                     <Board board={board} player={player} />
                     {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
-                    {isGameOver && (
+                    {isGameOver && score === 0 && (
+                        <GameStartOverlay 
+                            gameId="tetris"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    {isGameOver && score > 0 && (
                          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-20">
-                            {score > 0 && (
-                                <>
-                                    <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
-                                    <Leaderboard scores={highScores} />
-                                </>
-                            )}
+                            <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
+                            <Leaderboard scores={highScores} />
                             <button 
                                 onClick={startGame}
-                                className="px-6 py-3 bg-cyan-500 text-slate-900 font-bold rounded-md hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="px-6 py-3 bg-cyan-500 text-slate-900 font-bold rounded-md hover:bg-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4"
                             >
-                                {/* FIX: 'lives' is not defined in the useGame hook for Tetris. The button text should only depend on the score. */}
-                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
+                                PLAY AGAIN
                             </button>
                         </div>
                     )}
                 </div>
             </main>
 
-             {controlType === 'on-screen' && (
+             {controlType === 'on-screen' && !isGameOver && (
                 <Controls
                     movePlayer={movePlayer}
                     rotatePlayer={rotatePlayer}

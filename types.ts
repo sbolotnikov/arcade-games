@@ -186,3 +186,61 @@ export interface ColumnsPiece {
     y: number;
     blocks: [string, string, string]; // Top, Middle, Bottom
 }
+
+// Othello (Reversi) Types
+export type OthelloDisc = 'B' | 'W';
+export type OthelloCell = OthelloDisc | null;
+export type OthelloBoard = OthelloCell[][];
+
+export interface OthelloMove {
+    row: number;
+    col: number;
+    flipped: { row: number; col: number }[];
+}
+
+export interface OthelloBrainStats {
+    gamesPlayed: number;
+    aiWins: number;
+    playerWins: number;
+    draws: number;
+    totalMovesLearned: number;
+    evolutionLevel: number;
+    learningRate: number;
+    weights: number[][]; // 8x8 learned positional evaluations
+    lastLog: string[];
+}
+
+// Renju / 5 in a Row (Gomoku) Types
+export type RenjuStone = 'B' | 'W';
+export type RenjuCell = RenjuStone | null;
+export type RenjuBoard = RenjuCell[][];
+
+export type RenjuRuleMode = 'freestyle' | 'renju';
+export type RenjuAiDifficulty = 'adaptive' | 'grandmaster' | 'casual';
+
+export interface RenjuMove {
+    row: number;
+    col: number;
+    player: RenjuStone;
+    moveNumber: number;
+}
+
+export interface RenjuBrainStats {
+    gamesPlayed: number;
+    aiWins: number;
+    playerWins: number;
+    draws: number;
+    totalMovesLearned: number;
+    evolutionLevel: number;
+    aggressionIndex: number; // 0.0 - 2.0 dynamic balance of attack vs block
+    defenseIndex: number;
+    weights: number[][]; // 15x15 learned positional evaluations
+    playerHabits: {
+        horizontalBias: number;
+        verticalBias: number;
+        diagonalBias: number;
+        aggressiveScore: number;
+    };
+    lastLog: string[];
+}
+

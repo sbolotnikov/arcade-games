@@ -1,5 +1,4 @@
-'use client';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import type { ArkanoidBall, ArkanoidPaddle, ArkanoidBrick } from '../types';
 import { useInterval } from './useInterval';
 
@@ -8,6 +7,7 @@ const CANVAS_HEIGHT = 500;
 const PADDLE_WIDTH = 75;
 const PADDLE_HEIGHT = 10;
 const BALL_RADIUS = 5;
+const BRICK_ROWS = 5;
 const BRICK_COLS = 8;
 const BRICK_WIDTH = 45;
 const BRICK_HEIGHT = 20;
@@ -126,8 +126,7 @@ export const useArkanoidGame = () => {
 
         // 1. Calculate next potential position
         setBall(prevBall => {
-            const { x, y } = prevBall;
-            let { dx, dy } = prevBall;
+            let { x, y, dx, dy } = prevBall;
             let nextX = x + dx;
             let nextY = y + dy;
 
@@ -181,6 +180,7 @@ export const useArkanoidGame = () => {
                 
                 // Determine bounce direction
                 const prevX = x;
+                const prevY = y;
                 
                 if (prevX + BALL_RADIUS <= brick.x || prevX - BALL_RADIUS >= brick.x + brick.width) {
                     dx = -dx;

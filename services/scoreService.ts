@@ -1,4 +1,4 @@
-'use client';
+
 export interface ScoreEntry {
     name: string;
     score: number;
@@ -14,12 +14,11 @@ const MAX_SCORES_PER_GAME = 5;
 
 // Migration helper to move old scores to the new centralized system
 const migrateOldScores = () => {
-    if (typeof window === 'undefined') return; // Ensure this runs only on the client
     const centralized = localStorage.getItem(STORAGE_KEY);
     if (centralized) return; // Already migrated or initialized
 
     const newScores: GameScores = {};
-    const games = ['tetris', 'snake', 'doodlejump', 'digger', 'xonix', 'arkanoid'];
+    const games = ['tetris', 'snake', 'doodlejump', 'digger', 'xonix', 'poleposition'];
 
     games.forEach(gameId => {
         const oldKey = `${gameId}_high_scores`;
@@ -60,25 +59,21 @@ const migrateOldScores = () => {
 
 export const scoreService = {
     init: () => {
-        if (typeof window === 'undefined') return; // Ensure this runs only on the client
         migrateOldScores();
     },
 
     getScores: (gameId: string): ScoreEntry[] => {
-        if (typeof window === 'undefined') return []; // Ensure this runs only on the client
         const data = localStorage.getItem(STORAGE_KEY);
         if (!data) return [];
         try {
             const allScores: GameScores = JSON.parse(data);
             return allScores[gameId] || [];
         } catch (e) {
-            console.error('Failed to parse scores from localStorage', e);
             return [];
         }
     },
 
     saveScore: (gameId: string, playerName: string, score: number): ScoreEntry[] => {
-        if (typeof window === 'undefined') return scoreService.getScores(gameId); // Ensure this runs only on the client
         if (score <= 0) return scoreService.getScores(gameId);
 
         const data = localStorage.getItem(STORAGE_KEY);
@@ -87,7 +82,6 @@ export const scoreService = {
             try {
                 allScores = JSON.parse(data);
             } catch (e) {
-                console.error('Failed to parse scores from localStorage', e);
                 allScores = {};
             }
         }
@@ -110,7 +104,6 @@ export const scoreService = {
     },
 
     getHighScore: (gameId: string): number => {
-        if (typeof window === 'undefined') return 0; // Ensure this runs only on the client
         const scores = scoreService.getScores(gameId);
         return scores.length > 0 ? scores[0].score : 0;
     }

@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useColumnsGame } from '../../hooks/useColumnsGame';
 import { useHighScores } from '../../hooks/useHighScores';
 import GameStats from '../GameStats';
 import Leaderboard from '../Leaderboard';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
+import GameStartOverlay from '../GameStartOverlay';
+import { ColumnsGrid, ColumnsPiece } from '../../types';
 
 interface ColumnsGameProps {
     playerName: string;
@@ -196,33 +198,37 @@ const ColumnsGame: React.FC<ColumnsGameProps> = ({ playerName, controlType, onBa
                  )}
             </aside>
             
-            <main className="relative min-h-0 flex items-center justify-center pb-28 md:pb-0
-                           md:row-start-2 md:col-start-1">
+            <main className={`relative min-h-0 flex items-center justify-center ${controlType === 'on-screen' && !isGameOver ? 'pb-28 md:pb-0' : 'pb-4 md:pb-0'}
+                           md:row-start-2 md:col-start-1`}>
                 <div className="relative h-full w-auto max-w-full flex justify-center">
                     {renderGrid()}
                     
                     {isPaused && !isGameOver && <PauseModal onResume={togglePause} onQuit={onBack} />}
                     
-                    {isGameOver && (
+                    {isGameOver && score === 0 && (
+                        <GameStartOverlay 
+                            gameId="columns"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    
+                    {isGameOver && score > 0 && (
                          <div className="absolute inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center rounded-lg p-4 z-20">
-                            {score > 0 && (
-                                <>
-                                    <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
-                                    <Leaderboard scores={highScores} />
-                                </>
-                            )}
+                            <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">GAME OVER</div>
+                            <Leaderboard scores={highScores} />
                             <button 
                                 onClick={startGame}
-                                className="px-6 py-3 bg-purple-500 text-slate-900 font-bold rounded-md hover:bg-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-300 ease-in-out transform hover:scale-105"
+                                className="px-6 py-3 bg-purple-500 text-slate-900 font-bold rounded-md hover:bg-purple-400 focus:outline-none focus:ring-4 focus:ring-purple-300 transition-all duration-300 ease-in-out transform hover:scale-105 mt-4"
                             >
-                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
+                                PLAY AGAIN
                             </button>
                         </div>
                     )}
                 </div>
             </main>
 
-             {controlType === 'on-screen' && (
+             {controlType === 'on-screen' && !isGameOver && (
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-8 md:hidden z-50">
                     <div className="flex gap-2">
                         <button 

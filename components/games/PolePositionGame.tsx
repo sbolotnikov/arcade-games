@@ -1,43 +1,23 @@
-'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import { usePolePositionEngine } from '../../hooks/usePolePositionEngine';
-import { PolePositionTrack} from '../../types';
+import { PolePositionTrack, PolePositionSegment } from '../../types';
 import { useHighScores } from '../../hooks/useHighScores';
+import GameStats from '../GameStats';
 import Leaderboard from '../Leaderboard';
+import GameStartOverlay from '../GameStartOverlay';
+import { generateRandomTrack, TERRAIN_THEMES, TerrainTheme } from '../../utils/polePositionTrackGenerator';
+import { Dices, Sparkles } from 'lucide-react';
 
-const DEFAULT_TRACK: PolePositionTrack = {
-    id: 'grand_prix',
-    name: 'Grand Prix Circuit',
-    segments: [
-        { length: 100000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Start Straight
-        { length: 60000, curve: 1, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Wide Right
-        { length: 40000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Straight
-        { length: 40000, curve: -2, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Sharp Left
-        { length: 20000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Short Straight
-        { length: 120000, curve: 0.8, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Sweeping Right
-        { length: 150000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Back Straight
-        { length: 30000, curve: -3, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Tight Left
-        { length: 20000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Short Straight
-        { length: 30000, curve: 3, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Tight Right
-        { length: 80000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // Straight
-        { length: 40000, curve: -2, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // S-Curve Left
-        { length: 40000, curve: 2, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } },  // S-Curve Right
-        { length: 200000, curve: 0, elevation: 0, width: 1, decorations: { leftObjects: [], rightObjects: [], sceneryType: 'grass' } }, // Final Straight
-    ]
-};
+const DEFAULT_TRACK: PolePositionTrack = generateRandomTrack('alpine');
 
 const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' | 'on-screen'; onBack: () => void }> = ({ playerName, controlType, onBack }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [track, setTrack] = useState<PolePositionTrack>(DEFAULT_TRACK);
-    const [editorMode, setEditorMode] = useState(false);
-    const { scores, saveScore } = useHighScores('poleposition');
-
-    useEffect(() => {
+    const [track, setTrack] = useState<PolePositionTrack>(() => {
         const saved = localStorage.getItem('pole_position_custom_track_v2');
-        if (saved) {
-            setTrack(JSON.parse(saved));
-        }
-    }, []);
+        return saved ? JSON.parse(saved) : DEFAULT_TRACK;
+    });
+    const [editorMode, setEditorMode] = useState(false);
+    const { scores, highScore, saveScore } = useHighScores('poleposition');
 
     const {
         gameState,
@@ -46,9 +26,15 @@ const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' |
         lapTime,
         lastLapTime,
         currentLap,
+        currentTheme,
         render,
         setKey
     } = usePolePositionEngine(track);
+
+    const handleRandomizeTerrain = (themeKey?: TerrainTheme) => {
+        const newTrack = generateRandomTrack(themeKey);
+        handleSaveTrack(newTrack);
+    };
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -88,7 +74,6 @@ const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' |
                 const imported = JSON.parse(event.target?.result as string);
                 handleSaveTrack(imported);
             } catch (err) {
-                console.error("Failed to import track:", err);
                 alert("Invalid track file");
             }
         };
@@ -98,15 +83,31 @@ const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' |
     return (
         <div className="relative h-screen w-screen bg-slate-900 text-white flex flex-col overflow-hidden">
             {/* Header */}
-            <header className="p-4 flex justify-between items-center bg-slate-800 border-b border-slate-700">
-                <button onClick={onBack} className="text-cyan-400 hover:text-white">BACK</button>
-                <h1 className="text-2xl font-bold tracking-widest text-cyan-400">POLE POSITION</h1>
-                <div className="flex gap-4">
-                    <button onClick={() => setEditorMode(!editorMode)} className="px-4 py-2 bg-slate-700 rounded hover:bg-slate-600">
+            <header className="p-3 sm:p-4 flex flex-wrap justify-between items-center bg-slate-800 border-b border-slate-700 gap-2">
+                <div className="flex items-center gap-3">
+                    <button onClick={onBack} className="text-cyan-400 hover:text-white text-xs sm:text-sm font-bold">BACK</button>
+                    <div>
+                        <h1 className="text-lg sm:text-xl font-bold tracking-widest text-cyan-400">POLE POSITION</h1>
+                        <span className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            {track.name} ({TERRAIN_THEMES[currentTheme]?.name || currentTheme})
+                        </span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => handleRandomizeTerrain()} 
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs rounded-lg hover:from-amber-400 hover:to-orange-400 shadow-md flex items-center gap-1.5 transition-all transform active:scale-95"
+                        title="Generate random 3D terrain with hills, curves, and roadside scenery"
+                    >
+                        <Dices className="w-4 h-4" />
+                        <span>RANDOM TERRAIN</span>
+                    </button>
+                    <button onClick={() => setEditorMode(!editorMode)} className="px-3 py-1.5 sm:px-4 sm:py-2 bg-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-600 transition-colors">
                         {editorMode ? 'CLOSE EDITOR' : 'TRACK EDITOR'}
                     </button>
                     {gameState === 'menu' && (
-                        <button onClick={() => setGameState('racing')} className="px-6 py-2 bg-cyan-600 rounded font-bold hover:bg-cyan-500">START RACE</button>
+                        <button onClick={() => setGameState('racing')} className="px-4 py-1.5 sm:px-6 sm:py-2 bg-cyan-600 rounded-lg text-xs font-bold hover:bg-cyan-500 transition-colors">START RACE</button>
                     )}
                 </div>
             </header>
@@ -294,14 +295,22 @@ const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' |
                 )}
             </div>
 
-            {/* Leaderboard Overlay */}
-            {(gameState === 'menu' || gameState === 'finished') && !editorMode && (
-                <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
-                    <div className="w-full max-w-md p-8 bg-slate-800 rounded-xl border border-cyan-500/30">
-                        <h2 className="text-3xl font-bold text-center text-cyan-400 mb-8 tracking-widest">
-                            {gameState === 'finished' ? 'RACE FINISHED' : 'TOP RACERS'}
+            {gameState === 'menu' && !editorMode && (
+                <GameStartOverlay 
+                    gameId="poleposition"
+                    controlType={controlType}
+                    onStart={() => setGameState('racing')}
+                />
+            )}
+
+            {/* Finished Race Leaderboard Overlay */}
+            {gameState === 'finished' && !editorMode && (
+                <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                    <div className="w-full max-w-md p-6 bg-slate-800 rounded-xl border border-cyan-500/30">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-center text-cyan-400 mb-6 tracking-widest">
+                            RACE FINISHED
                         </h2>
-                        {gameState === 'finished' && lastLapTime > 0 && (
+                        {lastLapTime > 0 && (
                              <div className="text-center mb-6">
                                 <p className="text-slate-400 text-sm">FINAL LAP TIME</p>
                                 <p className="text-4xl font-mono text-yellow-400">{lastLapTime.toFixed(2)}s</p>
@@ -310,21 +319,19 @@ const PolePositionGame: React.FC<{ playerName: string; controlType: 'keyboard' |
                         <Leaderboard scores={scores} />
                         <button 
                             onClick={() => setGameState('racing')}
-                            className="w-full mt-8 py-4 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-all transform hover:scale-105"
+                            className="w-full mt-6 py-3 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-500 transition-all transform hover:scale-105"
                         >
-                            {gameState === 'finished' ? 'RACE AGAIN' : 'START QUALIFYING'}
+                            RACE AGAIN
                         </button>
-                        {gameState === 'finished' && (
-                             <button 
-                                onClick={() => {
-                                    if (lastLapTime > 0) saveScore(playerName, Math.floor(100000 / lastLapTime)); // Score based on time (inverse)
-                                    setGameState('menu');
-                                }}
-                                className="w-full mt-4 py-2 bg-slate-700 text-white font-bold rounded-lg hover:bg-slate-600"
-                            >
-                                SAVE & MENU
-                            </button>
-                        )}
+                        <button 
+                            onClick={() => {
+                                if (lastLapTime > 0) saveScore(playerName, Math.floor(100000 / lastLapTime));
+                                setGameState('menu');
+                            }}
+                            className="w-full mt-3 py-2 bg-slate-700 text-white font-bold rounded-lg hover:bg-slate-600"
+                        >
+                            SAVE & MENU
+                        </button>
                     </div>
                 </div>
             )}

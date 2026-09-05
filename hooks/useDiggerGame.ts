@@ -80,7 +80,7 @@ export const useDiggerGame = () => {
     const generateLevel = useCallback((levelNum: number) => {
         const config = levelConfigs[levelNum - 1];
         const seededRandom = createSeededRandom(levelNum);
-        const newGrid = createEmptyGrid();
+        let newGrid = createEmptyGrid();
 
         for (let i = 0; i < config.tunnels; i++) {
             let x = Math.floor(seededRandom() * GRID_WIDTH);

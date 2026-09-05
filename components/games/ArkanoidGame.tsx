@@ -1,4 +1,3 @@
-'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import { useArkanoidGame } from '../../hooks/useArkanoidGame';
 import { useHighScores } from '../../hooks/useHighScores';
@@ -7,6 +6,7 @@ import Leaderboard from '../Leaderboard';
 import ArkanoidControls from '../ArkanoidControls';
 import PauseModal from '../PauseModal';
 import AudioPlayer from '../AudioPlayer';
+import GameStartOverlay from '../GameStartOverlay';
 
 interface ArkanoidGameProps {
     playerName: string;
@@ -35,19 +35,14 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
         canvasHeight,
     } = useArkanoidGame();
 
-    const [keyboardSpeed, setKeyboardSpeed] = useState<number>(10);
-    const [onScreenSpeed, setOnScreenSpeed] = useState<number>(10);
-
-    useEffect(() => {
-        const savedKeyboardSpeed = localStorage.getItem('arkanoid_keyboard_speed');
-        if (savedKeyboardSpeed) {
-            setKeyboardSpeed(parseInt(savedKeyboardSpeed, 10));
-        }
-        const savedOnScreenSpeed = localStorage.getItem('arkanoid_onscreen_speed');
-        if (savedOnScreenSpeed) {
-            setOnScreenSpeed(parseInt(savedOnScreenSpeed, 10));
-        }
-    }, []);
+    const [keyboardSpeed, setKeyboardSpeed] = useState<number>(() => {
+        const saved = localStorage.getItem('arkanoid_keyboard_speed');
+        return saved ? parseInt(saved, 10) : 10;
+    });
+    const [onScreenSpeed, setOnScreenSpeed] = useState<number>(() => {
+        const saved = localStorage.getItem('arkanoid_onscreen_speed');
+        return saved ? parseInt(saved, 10) : 10;
+    });
 
     useEffect(() => {
         localStorage.setItem('arkanoid_keyboard_speed', keyboardSpeed.toString());
@@ -106,7 +101,7 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
             window.removeEventListener('keyup', handleKeyUp);
             cancelAnimationFrame(animId);
         };
-    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, startGame, keyboardSpeed]);
+    }, [controlType, isGameOver, isPaused, togglePause, movePaddle, startGame]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -185,7 +180,7 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
                 <GameStats title="HIGH SCORE" value={highScore} />
             </div>
 
-            <main className="relative flex items-center justify-center w-full flex-grow pb-60 md:pb-0">
+            <main className={`relative flex items-center justify-center w-full flex-grow ${controlType === 'on-screen' && !isGameOver ? 'pb-60 md:pb-0' : 'pb-4 md:pb-0'}`}>
                 <div className="relative bg-slate-800 rounded-lg shadow-inner shadow-black p-1">
                     <canvas
                         ref={canvasRef}
@@ -207,7 +202,14 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
                             </div>
                         </div>
                     )}
-                    {isGameOver && (
+                    {isGameOver && score === 0 && (
+                        <GameStartOverlay 
+                            gameId="arkanoid"
+                            controlType={controlType}
+                            onStart={startGame}
+                        />
+                    )}
+                    {isGameOver && score > 0 && (
                         <div className="absolute inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center rounded-lg p-6 z-10 overflow-y-auto">
                             <div className="text-3xl font-bold text-red-500 mb-4 animate-pulse">{gameMessage}</div>
                             
@@ -249,12 +251,12 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
                                 )}
                             </div>
 
-                            {score > 0 && <Leaderboard scores={highScores} />}
+                            <Leaderboard scores={highScores} />
                             <button 
                                 onClick={startGame}
-                                className="px-8 py-4 bg-sky-500 text-slate-900 font-bold rounded-md hover:bg-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-300 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+                                className="px-8 py-4 bg-sky-500 text-slate-900 font-bold rounded-md hover:bg-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-300 transition-all duration-300 ease-in-out transform hover:scale-105 shadow-[0_0_15px_rgba(56,189,248,0.5)] mt-4"
                             >
-                                {score > 0 ? 'PLAY AGAIN' : 'START GAME'}
+                                PLAY AGAIN
                             </button>
                         </div>
                     )}
@@ -267,7 +269,7 @@ const ArkanoidGame: React.FC<ArkanoidGameProps> = ({ playerName, controlType, on
                     <p className="mt-2 italic opacity-70">Click game area to focus</p>
                 </div>
             )}
-            {controlType === 'on-screen' && <ArkanoidControls onMove={(dir) => movePaddle(dir, onScreenSpeed)} isGameOver={isGameOver || isPaused} />}
+            {controlType === 'on-screen' && !isGameOver && <ArkanoidControls onMove={(dir) => movePaddle(dir, onScreenSpeed)} isGameOver={isGameOver || isPaused} />}
         </div>
     );
 };

@@ -1,14 +1,6 @@
-'use client';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useInterval } from './useInterval';
 import { SpaceInvadersAlien, SpaceInvadersBullet, SpaceInvadersShield } from '../types';
-
-interface Rectangle {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -26,13 +18,14 @@ const ALIEN_COLS = 11;
 const ALIEN_SPACING_X = 50;
 const ALIEN_SPACING_Y = 40;
 
-const PLAYER_SPEED = 5;
-const BULLET_SPEED = 7;
+const DEFAULT_PLAYER_SPEED = 10;
+const BULLET_SPEED = 8;
 const ALIEN_SPEED_INITIAL = 1;
 const ALIEN_DROP_HEIGHT = 20;
 
 export const useSpaceInvadersGame = () => {
     const [playerX, setPlayerX] = useState(CANVAS_WIDTH / 2 - PLAYER_WIDTH / 2);
+    const [playerSpeed, setPlayerSpeed] = useState(DEFAULT_PLAYER_SPEED);
     const [aliens, setAliens] = useState<SpaceInvadersAlien[]>([]);
     const [bullets, setBullets] = useState<SpaceInvadersBullet[]>([]);
     const [shields, setShields] = useState<SpaceInvadersShield[]>([]);
@@ -43,7 +36,13 @@ export const useSpaceInvadersGame = () => {
     const [isPaused, setIsPaused] = useState(false);
     const [gameMessage, setGameMessage] = useState('');
 
+    const playerSpeedRef = useRef(DEFAULT_PLAYER_SPEED);
+    useEffect(() => {
+        playerSpeedRef.current = playerSpeed;
+    }, [playerSpeed]);
+
     const alienDirectionRef = useRef(1); // 1 for right, -1 for left
+    const lastAlienMoveRef = useRef(0);
     const nextIdRef = useRef(0);
     const keysPressed = useRef<{ [key: string]: boolean }>({});
 
@@ -157,7 +156,7 @@ export const useSpaceInvadersGame = () => {
         };
     }, [handleKeyDown, handleKeyUp]);
 
-    const checkCollision = (rect1: Rectangle, rect2: Rectangle) => {
+    const checkCollision = (rect1: any, rect2: any) => {
         return (
             rect1.x < rect2.x + rect2.width &&
             rect1.x + rect1.width > rect2.x &&
@@ -170,11 +169,12 @@ export const useSpaceInvadersGame = () => {
         if (isGameOver || isPaused) return;
 
         // Move Player
+        const currentSpeed = playerSpeedRef.current;
         if (keysPressed.current['ArrowLeft']) {
-            setPlayerX(prev => Math.max(0, prev - PLAYER_SPEED));
+            setPlayerX(prev => Math.max(0, prev - currentSpeed));
         }
         if (keysPressed.current['ArrowRight']) {
-            setPlayerX(prev => Math.min(CANVAS_WIDTH - PLAYER_WIDTH, prev + PLAYER_SPEED));
+            setPlayerX(prev => Math.min(CANVAS_WIDTH - PLAYER_WIDTH, prev + currentSpeed));
         }
 
         // Move Aliens
@@ -312,8 +312,51 @@ export const useSpaceInvadersGame = () => {
         setIsPaused(prev => !prev);
     }, []);
 
+    // Immediate single tap step: quick responsive nudge
+    const moveLeft = useCallback((step?: number) => {
+        const delta = step ?? Math.max(playerSpeedRef.current * 2, 20);
+        setPlayerX(prev => Math.max(0, prev - delta));
+    }, []);
+
+    const moveRight = useCallback((step?: number) => {
+        const delta = step ?? Math.max(playerSpeedRef.current * 2, 20);
+        setPlayerX(prev => Math.min(CANVAS_WIDTH - PLAYER_WIDTH, prev + delta));
+    }, []);
+
+    // Continuous hold: immediately steps and engages 60fps movement
+    const startMovingLeft = useCallback(() => {
+        keysPressed.current['ArrowLeft'] = true;
+        keysPressed.current['ArrowRight'] = false;
+        // Instant response burst on first touch/click
+        const initialBurst = Math.max(playerSpeedRef.current * 1.5, 15);
+        setPlayerX(prev => Math.max(0, prev - initialBurst));
+    }, []);
+
+    const startMovingRight = useCallback(() => {
+        keysPressed.current['ArrowRight'] = true;
+        keysPressed.current['ArrowLeft'] = false;
+        // Instant response burst on first touch/click
+        const initialBurst = Math.max(playerSpeedRef.current * 1.5, 15);
+        setPlayerX(prev => Math.min(CANVAS_WIDTH - PLAYER_WIDTH, prev + initialBurst));
+    }, []);
+
+    const stopMovingLeft = useCallback(() => {
+        keysPressed.current['ArrowLeft'] = false;
+    }, []);
+
+    const stopMovingRight = useCallback(() => {
+        keysPressed.current['ArrowRight'] = false;
+    }, []);
+
+    const stopMoving = useCallback(() => {
+        keysPressed.current['ArrowLeft'] = false;
+        keysPressed.current['ArrowRight'] = false;
+    }, []);
+
     return {
         playerX,
+        playerSpeed,
+        setPlayerSpeed,
         aliens,
         bullets,
         shields,
@@ -326,6 +369,13 @@ export const useSpaceInvadersGame = () => {
         startGame,
         togglePause,
         fireBullet,
-        setPlayerX
+        setPlayerX,
+        moveLeft,
+        moveRight,
+        startMovingLeft,
+        startMovingRight,
+        stopMovingLeft,
+        stopMovingRight,
+        stopMoving
     };
 };

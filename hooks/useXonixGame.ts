@@ -1,6 +1,5 @@
-'use client';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { XonixGrid, XonixPlayer, XonixEnemy, Direction } from '../types';
+import type { XonixGrid, XonixPlayer, XonixEnemy, Direction, XonixGridCell } from '../types';
 import { useInterval } from './useInterval';
 
 const GRID_WIDTH = 40;
@@ -91,28 +90,28 @@ export const useXonixGame = () => {
         playerDirectionRef.current = dir;
     }, [player.direction, player.isDrawing, isPaused]);
 
-    const resetAfterDeath = useCallback(() => {
+    const [collisionFlash, setCollisionFlash] = useState<{ x: number; y: number } | null>(null);
+
+    const resetAfterDeath = useCallback((collisionPoint?: { x: number; y: number }) => {
+        if (collisionPoint) {
+            setCollisionFlash(collisionPoint);
+            setTimeout(() => setCollisionFlash(null), 600);
+        }
+        // Always clean EVERY 'LINE' cell across the entire grid to prevent any stray artifacts
+        setGrid(g => g.map(row => row.map(cell => cell === 'LINE' ? 'EMPTY' : cell)));
+        setPath([]);
+        setPlayer({ x: Math.floor(GRID_WIDTH / 2), y: 0, direction: null, isDrawing: false });
+        playerDirectionRef.current = null;
+
         setLives(l => {
             if (l - 1 <= 0) {
                 setIsGameOver(true);
                 setGameMessage('GAME OVER');
                 return 0;
             }
-            setPlayer({ x: Math.floor(GRID_WIDTH / 2), y: 0, direction: null, isDrawing: false });
-            playerDirectionRef.current = null;
-            setGrid(g => {
-                const newGrid = g.map(row => [...row]);
-                path.forEach(p => {
-                    if (g[p.y]?.[p.x] === 'LINE') {
-                       newGrid[p.y][p.x] = 'EMPTY';
-                    }
-                });
-                return newGrid;
-            });
-            setPath([]);
             return l - 1;
         });
-    }, [score, path]);
+    }, []);
 
     const floodFill = useCallback((start_x: number, start_y: number, tempGrid: XonixGrid, currentEnemies: XonixEnemy[]) => {
         const toFill = [];
@@ -188,6 +187,15 @@ export const useXonixGame = () => {
         } else {
             finalPath.forEach(p => { tempGrid[p.y][p.x] = 'BORDER'; });
         }
+
+        // Failsafe: purge any remaining stray LINE cells to guarantee zero artifacts
+        for (let rY = 0; rY < GRID_HEIGHT; rY++) {
+            for (let rX = 0; rX < GRID_WIDTH; rX++) {
+                if (tempGrid[rY][rX] === 'LINE') {
+                    tempGrid[rY][rX] = filledSomething ? 'FILLED' : 'BORDER';
+                }
+            }
+        }
         
         setGrid(tempGrid);
     }, [grid, enemies, floodFill, setScore]);
@@ -221,8 +229,9 @@ export const useXonixGame = () => {
                     newPlayerState.isDrawing = false;
                     setPath([]);
                 } else if (nextCell === 'LINE') {
-                    resetAfterDeath();
-                    return p;
+                    // Player crossed own trail: trigger death and immediately reset player position to border
+                    resetAfterDeath({ x, y });
+                    return { x: Math.floor(GRID_WIDTH / 2), y: 0, direction: null, isDrawing: false };
                 } else {
                     setPath(prev => [...prev, newPlayerState]);
                     setGrid(g => {
@@ -248,8 +257,8 @@ export const useXonixGame = () => {
         const nextEnemies = enemies.map(e => {
             let { x, y, dx, dy } = e;
             
-            const nextX = x + dx;
-            const nextY = y + dy;
+            let nextX = x + dx;
+            let nextY = y + dy;
 
             const gridX = Math.floor(nextX);
             const gridY = Math.floor(nextY);
@@ -284,17 +293,24 @@ export const useXonixGame = () => {
             return { ...e, x, y, dx, dy };
         });
 
-        const isPathHit = nextEnemies.some(e => 
-            path.some(p => p.x === Math.floor(e.x) && p.y === Math.floor(e.y))
-        );
+        // Hit detection: Enemy hits active path, any LINE cell, or the drawing player
+        const hitEnemy = nextEnemies.find(e => {
+            const gx = Math.floor(e.x);
+            const gy = Math.floor(e.y);
+            return (
+                grid[gy]?.[gx] === 'LINE' ||
+                path.some(p => p.x === gx && p.y === gy) ||
+                (player.isDrawing && player.x === gx && player.y === gy)
+            );
+        });
         
-        if (isPathHit) {
-            resetAfterDeath();
+        if (hitEnemy) {
+            resetAfterDeath({ x: Math.floor(hitEnemy.x), y: Math.floor(hitEnemy.y) });
         } else {
             setEnemies(nextEnemies);
         }
 
-    }, [isGameOver, grid, enemies, path, completeLine, resetAfterDeath]);
+    }, [isGameOver, grid, enemies, path, player, completeLine, resetAfterDeath]);
     
     useEffect(() => {
         if(isGameOver) return;
@@ -321,5 +337,5 @@ export const useXonixGame = () => {
 
     useInterval(gameLoop, isGameOver || isPaused ? null : tickRate);
 
-    return { grid, player, enemies, path, score, lives, level, filledPercentage, requiredPercentage: levelConfigs[level-1]?.requiredPercentage || 75, isGameOver, isPaused, gameMessage, startGame, changeDirection, togglePause };
+    return { grid, player, enemies, path, score, lives, level, filledPercentage, requiredPercentage: levelConfigs[level-1]?.requiredPercentage || 75, isGameOver, isPaused, gameMessage, collisionFlash, startGame, changeDirection, togglePause };
 };
