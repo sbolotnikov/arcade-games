@@ -142,6 +142,7 @@ const App: React.FC = () => {
                             controlType={controlType}
                             onBack={handleBackToGames}
                         />;
+            case 'othello':            
                 return <OthelloGame
                             playerName={playerName}
                             controlType={controlType}
