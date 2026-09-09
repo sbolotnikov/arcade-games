@@ -282,6 +282,151 @@ export const GAME_DESCRIPTIONS: Record<string, GameInfo> = {
             touch: 'Tap on any empty intersection on the 15x15 wooden board.'
         },
         tips: 'An Open Four (four stones with both ends unblocked) is unstoppable! Focus on creating Double Threes (3-3 forks) or 4-3 forks so your opponent cannot block both threats in a single turn.'
+    },
+    '1942': {
+        id: '1942',
+        title: '1942',
+        genre: 'Vertical Scrolling Arcade Shooter',
+        shortDescription: 'Capcom’s 1984 arcade classic! Pilot a Lockheed P-38 Lightning over the Pacific, dogfight waves of enemy aircraft, and execute 360° aerial loops to dodge fire!',
+        gameplay: 'Fly over the Pacific Ocean as the screen constantly scrolls downward. Control your World War II fighter plane viewed from above, shooting waves of incoming enemy planes including agile Zero fighters, red looping squadrons, and armored twin-engine bombers. When trapped under dense bullet barrages, execute the legendary 360° Loop maneuver to achieve temporary total invulnerability. Wipe out entire red formations to drop glowing POW power-ups, attach dual Wingmen escort fighters for triple firepower, and take down the massive multi-engine flying fortress flagship!',
+        features: [
+            'Iconic Lockheed P-38 Lightning with dual engines, spinning propellers, and authentic banking animations',
+            'Special 360° Aerial Loop Maneuver (Loop-the-Loop) granting complete invulnerability during the flip',
+            'Wingmen Escort Fighters: Attach two sidekick planes to your wings for triple forward firepower',
+            'POW Power-Ups: Quad Rapid Machine Guns, Multi-Way Spread, Extra Loops, and screen-clearing Mega Crash',
+            'Synchronized Red Plane Formations: 100% destruction awards +1,000 pts and releases a guaranteed POW bonus',
+            'Giant Stage Boss: The massive multi-turreted "Daihiryu" super flying fortress with destructible components',
+            'Carrier Takeoff & Landing sequences with stage debriefing and shooting down accuracy statistics',
+            'Authentic 1984 Capcom Arcade Sound Synthesizer with machine gun blasts, loop whooshes, and victory fanfares',
+            'CRT Scanlines toggle and retro arcade cabinet bezel mode'
+        ],
+        controls: {
+            keyboard: 'WASD or ARROW KEYS to fly in 8 directions. SPACE, Z, or J to fire machine guns. K, X, or C for Loop-the-Loop maneuver. P or ESC to pause.',
+            touch: 'Virtual 8-way D-Pad to steer, FIRE button for machine guns, and LOOP button for 360° aerial evasion.'
+        },
+        tips: 'Save your aerial loops for emergency bullet swarms and boss bullet walls! Always prioritize shooting down 100% of the red plane formations to earn valuable POW power-ups and escort wingmen.',
+        powerUps: [
+            {
+                name: 'Quad Rapid Machine Guns',
+                icon: '⚡',
+                description: 'Upgrades your dual nose guns to high-velocity quad tracers with increased rate of fire.',
+                rarity: 'Common (35%)'
+            },
+            {
+                name: 'Wingmen Escort Planes',
+                icon: '✈️',
+                description: 'Attaches two agile escort fighters to both flanks of your P-38, tripling your firepower and shielding you from a hit.',
+                rarity: 'Rare (25%)'
+            },
+            {
+                name: 'Mega Crash (Screen Bomb)',
+                icon: '💣',
+                description: 'Triggers a thunderous screen detonation that annihilates all enemy bullets and heavily damages all hostile planes.',
+                rarity: 'Uncommon (20%)'
+            },
+            {
+                name: 'Extra Loop (R)',
+                icon: '🔄',
+                description: 'Restores an additional aerial loop-the-loop maneuver to your reserve counter.',
+                rarity: 'Uncommon (20%)'
+            }
+        ]
+    },
+    game1942: {
+        id: 'game1942',
+        title: '1942',
+        genre: 'Vertical Scrolling Arcade Shooter',
+        shortDescription: 'Capcom’s 1984 arcade classic! Pilot a Lockheed P-38 Lightning over the Pacific, dogfight waves of enemy aircraft, and execute 360° aerial loops to dodge fire!',
+        gameplay: 'Fly over the Pacific Ocean as the screen constantly scrolls downward. Control your World War II fighter plane viewed from above, shooting waves of incoming enemy planes including agile Zero fighters, red looping squadrons, and armored twin-engine bombers. When trapped under dense bullet barrages, execute the legendary 360° Loop maneuver to achieve temporary total invulnerability. Wipe out entire red formations to drop glowing POW power-ups, attach dual Wingmen escort fighters for triple firepower, and take down the massive multi-engine flying fortress flagship!',
+        features: [
+            'Iconic Lockheed P-38 Lightning with dual engines, spinning propellers, and authentic banking animations',
+            'Special 360° Aerial Loop Maneuver (Loop-the-Loop) granting complete invulnerability during the flip',
+            'Wingmen Escort Fighters: Attach two sidekick planes to your wings for triple forward firepower',
+            'POW Power-Ups: Quad Rapid Machine Guns, Multi-Way Spread, Extra Loops, and screen-clearing Mega Crash',
+            'Synchronized Red Plane Formations: 100% destruction awards +1,000 pts and releases a guaranteed POW bonus',
+            'Giant Stage Boss: The massive multi-turreted "Daihiryu" super flying fortress with destructible components',
+            'Carrier Takeoff & Landing sequences with stage debriefing and shooting down accuracy statistics',
+            'Authentic 1984 Capcom Arcade Sound Synthesizer with machine gun blasts, loop whooshes, and victory fanfares',
+            'CRT Scanlines toggle and retro arcade cabinet bezel mode'
+        ],
+        controls: {
+            keyboard: 'WASD or ARROW KEYS to fly in 8 directions. SPACE, Z, or J to fire machine guns. K, X, or C for Loop-the-Loop maneuver. P or ESC to pause.',
+            touch: 'Virtual 8-way D-Pad to steer, FIRE button for machine guns, and LOOP button for 360° aerial evasion.'
+        },
+        tips: 'Save your aerial loops for emergency bullet swarms and boss bullet walls! Always prioritize shooting down 100% of the red plane formations to earn valuable POW power-ups and escort wingmen.',
+        powerUps: [
+            {
+                name: 'Quad Rapid Machine Guns',
+                icon: '⚡',
+                description: 'Upgrades your dual nose guns to high-velocity quad tracers with increased rate of fire.',
+                rarity: 'Common (35%)'
+            },
+            {
+                name: 'Wingmen Escort Planes',
+                icon: '✈️',
+                description: 'Attaches two agile escort fighters to both flanks of your P-38, tripling your firepower and shielding you from a hit.',
+                rarity: 'Rare (25%)'
+            },
+            {
+                name: 'Mega Crash (Screen Bomb)',
+                icon: '💣',
+                description: 'Triggers a thunderous screen detonation that annihilates all enemy bullets and heavily damages all hostile planes.',
+                rarity: 'Uncommon (20%)'
+            },
+            {
+                name: 'Extra Loop (R)',
+                icon: '🔄',
+                description: 'Restores an additional aerial loop-the-loop maneuver to your reserve counter.',
+                rarity: 'Uncommon (20%)'
+            }
+        ]
+    },
+    bejeweled: {
+        id: 'bejeweled',
+        title: 'Bejeweled & Level Editor',
+        genre: 'Match-3 Gem Puzzle',
+        shortDescription: 'The ultimate gem-swapping phenomenon! Create explosive Flame Gems, screen-clearing Star Lasers, and prismatic Hypercubes, with a fully interactive Board & Level Editor!',
+        gameplay: 'Swap adjacent shimmering gemstones horizontally or vertically to match three or more of the same color. Matching 4 gems creates a fiery Flame Gem that detonates a 3x3 blast when matched. Forming a T or L-shape creates an astronomical Star Gem that unleashes penetrating laser beams across its full row and column. Aligning 5 gems in a row creates the legendary Hypercube—swap it with any gemstone to disintegrate every jewel of that color across the board! Toggle the built-in Level Editor anytime to paint custom jewel setups, place stone obstacles, test cascading chain reactions, and save/export your puzzle designs.',
+        features: [
+            'Dazzling Gemstone Graphics: 7 faceted jewels with specular reflections, glints, and refractive glow',
+            'Flame Gems: 4-in-a-row synthesis causes thunderous 3x3 explosive area detonations',
+            'Star Gems: T & L-shape synthesis unleashes dual-axis horizontal and vertical laser beams',
+            'Prismatic Hypercubes: 5-in-a-row creates the cosmic rainbow cube that wipes all matching colors',
+            'Integrated Level & Board Editor: Paint gems, place stone blockers, edit board sizes, load presets, and save/export custom puzzles',
+            'Escalating Cascade Combos: Chain reactions trigger rising musical pentatonic scales and multiplier bonuses',
+            'Smart Hint System: Automatically identifies and highlights valid strategic moves'
+        ],
+        controls: {
+            keyboard: 'Click or Drag adjacent gems to swap. Arrow Keys or WASD to navigate cursor, SPACE/ENTER to select and swap. H for Hint, E for Board Editor, P/ESC to Pause, R to Restart.',
+            touch: 'Tap to select and swap adjacent gems, or use the on-screen D-Pad and SWAP button. Dedicated HINT and EDIT buttons.'
+        },
+        tips: 'Look for 4-in-a-row and T-shapes to generate Flame and Star gems early. Saving a Hypercube to combine with another special gem or abundant color will trigger massive cascading multipliers!',
+        powerUps: [
+            {
+                name: 'Flame Gem',
+                icon: '🔥',
+                description: 'Synthesized by matching 4 gems in a line. When matched, triggers a 3x3 radius explosion wiping surrounding gems.',
+                rarity: 'Match 4'
+            },
+            {
+                name: 'Star Gem',
+                icon: '⭐',
+                description: 'Synthesized by creating an intersecting T-shape or L-shape. When matched, fires laser beams wiping its entire row and column.',
+                rarity: 'Match T or L'
+            },
+            {
+                name: 'Hypercube',
+                icon: '🌈',
+                description: 'Synthesized by matching 5 gems in a straight line. Swap with any gem to disintegrate all gems of that color on the board.',
+                rarity: 'Match 5'
+            },
+            {
+                name: 'Cascade Multiplier',
+                icon: '⚡',
+                description: 'Falling gems that automatically trigger consecutive matches escalate the score multiplier (x2, x3, x4...) with rising musical chimes.',
+                rarity: 'Chain Reaction'
+            }
+        ]
     }
 };
 

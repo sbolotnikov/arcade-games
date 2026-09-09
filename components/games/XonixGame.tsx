@@ -27,6 +27,25 @@ const XonixGame: React.FC<XonixGameProps> = ({ playerName, controlType, onBack }
     } = useXonixGame();
 
     const gameAreaRef = useRef<HTMLDivElement>(null);
+    const lastDirectionRef = useRef<Direction>('UP');
+
+    useEffect(() => {
+        if (player.direction) {
+            lastDirectionRef.current = player.direction;
+        }
+    }, [player.direction]);
+
+    const getRotationAngle = (dir: Direction | null) => {
+        const activeDir = dir || lastDirectionRef.current;
+        switch (activeDir) {
+            case 'UP': return 0;
+            case 'RIGHT': return 90;
+            case 'DOWN': return 180;
+            case 'LEFT': return 270;
+            default: return 0;
+        }
+    };
+    const craftRotation = getRotationAngle(player.direction);
 
     useEffect(() => {
         if (isGameOver && score > 0 && playerName) {
@@ -194,7 +213,7 @@ const XonixGame: React.FC<XonixGameProps> = ({ playerName, controlType, onBack }
                                     </div>
                                 )))}
 
-                                {/* High-Tech Neon Cutter Craft (Player) */}
+                                {/* High-Tech Animated Holographic Cursor & Cyber Cutter Craft (Player) */}
                                 <div 
                                     className="absolute flex items-center justify-center z-30 pointer-events-none" 
                                     style={{
@@ -205,11 +224,76 @@ const XonixGame: React.FC<XonixGameProps> = ({ playerName, controlType, onBack }
                                         transition: 'top 95ms linear, left 95ms linear'
                                     }}
                                 >
-                                    <div className="w-[300%] h-[300%] flex items-center justify-center -translate-x-[33%] -translate-y-[33%] drop-shadow-[0_0_10px_#38bdf8]">
-                                        <XonixPlayerSvg />
-                                        {/* Laser Sparks when actively cutting */}
+                                    {/* Zero-dimension centered anchor point */}
+                                    <div className="relative flex items-center justify-center w-0 h-0">
+                                        
+                                        {/* Layer 1: Expanding Radar Beacon Wave Ping */}
+                                        <div 
+                                            className={`absolute rounded-full pointer-events-none ${
+                                                player.isDrawing 
+                                                    ? 'w-11 h-11 border-2 border-amber-400/90 bg-amber-400/20 animate-xonix-beacon-fast shadow-[0_0_14px_#f59e0b]' 
+                                                    : 'w-10 h-10 border border-cyan-300/80 bg-cyan-400/15 animate-xonix-beacon shadow-[0_0_10px_#06b6d4]'
+                                            }`}
+                                        />
+
+                                        {/* Layer 2: Tactical Cyber Crosshair Reticle (Grid-Aligned for Instant Tracking) */}
+                                        <div className="absolute w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center animate-xonix-reticle pointer-events-none">
+                                            {/* 4 Corner Reticle Brackets */}
+                                            <div className={`absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 transition-colors duration-200 ${player.isDrawing ? 'border-amber-300 shadow-[0_0_8px_#f59e0b]' : 'border-cyan-300 shadow-[0_0_6px_#22d3ee]'}`} />
+                                            <div className={`absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 transition-colors duration-200 ${player.isDrawing ? 'border-amber-300 shadow-[0_0_8px_#f59e0b]' : 'border-cyan-300 shadow-[0_0_6px_#22d3ee]'}`} />
+                                            <div className={`absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 transition-colors duration-200 ${player.isDrawing ? 'border-amber-300 shadow-[0_0_8px_#f59e0b]' : 'border-cyan-300 shadow-[0_0_6px_#22d3ee]'}`} />
+                                            <div className={`absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 transition-colors duration-200 ${player.isDrawing ? 'border-amber-300 shadow-[0_0_8px_#f59e0b]' : 'border-cyan-300 shadow-[0_0_6px_#22d3ee]'}`} />
+                                            
+                                            {/* Rotating Dashed Circular HUD Scanner */}
+                                            <div 
+                                                className={`absolute inset-0 rounded-full border transition-colors duration-200 ${
+                                                    player.isDrawing 
+                                                        ? 'border-dashed border-2 border-amber-400/90 animate-xonix-radar-fast shadow-[0_0_12px_rgba(245,158,11,0.6)]' 
+                                                        : 'border-dashed border-cyan-400/60 animate-xonix-radar-slow shadow-[0_0_8px_rgba(6,182,212,0.4)]'
+                                                }`} 
+                                            />
+
+                                            {/* Micro Crosshair Alignment Pips */}
+                                            <div className={`absolute -top-1.5 w-0.5 h-1 transition-colors duration-200 ${player.isDrawing ? 'bg-amber-300' : 'bg-cyan-300'}`} />
+                                            <div className={`absolute -bottom-1.5 w-0.5 h-1 transition-colors duration-200 ${player.isDrawing ? 'bg-amber-300' : 'bg-cyan-300'}`} />
+                                            <div className={`absolute -left-1.5 h-0.5 w-1 transition-colors duration-200 ${player.isDrawing ? 'bg-amber-300' : 'bg-cyan-300'}`} />
+                                            <div className={`absolute -right-1.5 h-0.5 w-1 transition-colors duration-200 ${player.isDrawing ? 'bg-amber-300' : 'bg-cyan-300'}`} />
+                                        </div>
+
+                                        {/* Layer 3: Rotated Cyber Cutter Craft with Thruster Sparks & Direction Heading */}
+                                        <div 
+                                            className="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center transition-transform duration-150 ease-out"
+                                            style={{
+                                                transform: `rotate(${craftRotation}deg)`,
+                                                filter: player.isDrawing 
+                                                    ? 'drop-shadow(0 0 10px #f59e0b) drop-shadow(0 0 22px rgba(239,68,68,0.85))' 
+                                                    : 'drop-shadow(0 0 8px #06b6d4) drop-shadow(0 0 18px rgba(56,189,248,0.75))'
+                                            }}
+                                        >
+                                            <XonixPlayerSvg isDrawing={player.isDrawing} />
+
+                                            {/* Active Cutting Plasma Sparks (Piercing Matrix) */}
+                                            {player.isDrawing && (
+                                                <div className="absolute -top-3 w-3 h-3 flex items-center justify-center pointer-events-none">
+                                                    <div className="w-2 h-2 bg-amber-200 rounded-full animate-ping shadow-[0_0_8px_#fef08a]" />
+                                                    <div className="absolute w-3.5 h-3.5 border border-amber-300 rounded-full animate-xonix-spark" />
+                                                </div>
+                                            )}
+
+                                            {/* Rear Exhaust Particle Flare when Moving */}
+                                            {player.direction && (
+                                                <div className="absolute -bottom-2 w-2 h-2 flex items-center justify-center pointer-events-none">
+                                                    <div className={`w-1.5 h-1.5 rounded-full animate-ping ${player.isDrawing ? 'bg-amber-400' : 'bg-cyan-300'}`} />
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Layer 4: Tactical HUD Status Pill Badge */}
                                         {player.isDrawing && (
-                                            <div className="absolute -bottom-1 w-2 h-2 bg-amber-300 rounded-full animate-ping" />
+                                            <div className="absolute -top-7 px-1.5 py-0.5 rounded bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-[8px] font-black font-mono tracking-widest text-slate-950 shadow-[0_0_10px_#f59e0b] animate-bounce whitespace-nowrap uppercase border border-yellow-200 flex items-center gap-1 z-40">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                                                <span>CUT</span>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

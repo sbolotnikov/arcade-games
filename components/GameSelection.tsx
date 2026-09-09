@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
@@ -194,20 +195,84 @@ const SuperMarioIcon: React.FC = () => (
     </motion.div>
 );
 
-const GAME_ICONS: Record<string, React.ReactNode> = {
-    supermario: <SuperMarioIcon />,
-    tetris: <TetrisIcon />,
-    snake: <SnakeIcon />,
-    doodlejump: <DoodleJumpIcon />,
-    digger: <DiggerIcon />,
-    xonix: <XonixIcon />,
-    spaceinvaders: <SpaceInvadersIcon />,
-    poleposition: <PolePositionIcon />,
-    arkanoid: <ArkanoidIcon />,
-    columns: <ColumnsIcon />,
-    tapper: <TapperIcon />,
-    othello: <OthelloIcon />,
-    renju: <RenjuIcon />
+const Game1942Icon: React.FC = () => (
+    <motion.div 
+        className="relative flex items-center justify-center w-12 h-12 md:w-16 md:h-16"
+        whileHover={{ y: [0, -6, 0], scale: 1.15, transition: { repeat: Infinity, duration: 0.6 } }}
+    >
+        <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center filter drop-shadow-[0_0_12px_rgba(234,179,8,0.85)]">
+            <svg viewBox="0 0 64 64" className="w-full h-full">
+                {/* Twin booms */}
+                <rect x="18" y="16" width="6" height="34" rx="2" fill="#475569" />
+                <rect x="40" y="16" width="6" height="34" rx="2" fill="#475569" />
+                {/* Tail */}
+                <rect x="16" y="44" width="32" height="4" rx="1" fill="#334155" />
+                {/* Wings */}
+                <polygon points="32,24 60,32 4,32" fill="#64748b" />
+                {/* Gondola */}
+                <rect x="28" y="18" width="8" height="24" rx="3" fill="#334155" />
+                {/* Canopy */}
+                <ellipse cx="32" cy="27" rx="2.5" ry="5" fill="#38bdf8" />
+                {/* Propellers */}
+                <ellipse cx="21" cy="15" rx="7" ry="2" fill="#facc15" opacity="0.9" />
+                <ellipse cx="43" cy="15" rx="7" ry="2" fill="#facc15" opacity="0.9" />
+                {/* Gun tracer sparks */}
+                <line x1="21" y1="12" x2="21" y2="4" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
+                <line x1="43" y1="12" x2="43" y2="4" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
+            </svg>
+        </div>
+        <div className="absolute inset-0 bg-amber-500/15 blur-xl rounded-full"></div>
+    </motion.div>
+);
+
+const BejeweledIcon: React.FC = () => (
+    <motion.div 
+        className="relative flex items-center justify-center w-12 h-12 md:w-16 md:h-16"
+        whileHover={{ rotate: [0, -10, 10, 0], scale: 1.2, transition: { repeat: Infinity, duration: 0.8 } }}
+    >
+        <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center filter drop-shadow-[0_0_15px_rgba(192,132,252,0.9)]">
+            <svg viewBox="0 0 64 64" className="w-full h-full">
+                <defs>
+                    <linearGradient id="bejeweled-icon-g" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#f472b6" />
+                        <stop offset="50%" stopColor="#a855f7" />
+                        <stop offset="100%" stopColor="#38bdf8" />
+                    </linearGradient>
+                </defs>
+                <polygon points="16,14 48,14 58,28 32,56 6,28" fill="url(#bejeweled-icon-g)" stroke="#fdf4ff" strokeWidth="2" />
+                <polygon points="16,14 48,14 40,28 24,28" fill="#ffffff" opacity="0.6" />
+                <polygon points="48,14 58,28 40,28" fill="#c084fc" opacity="0.8" />
+                <polygon points="16,14 6,28 24,28" fill="#f472b6" opacity="0.8" />
+                <polygon points="24,28 40,28 32,56" fill="#9333ea" opacity="0.9" />
+                <polygon points="6,28 24,28 32,56" fill="#ec4899" opacity="0.75" />
+                <polygon points="58,28 40,28 32,56" fill="#3b82f6" opacity="0.75" />
+                <circle cx="22" cy="20" r="2.5" fill="#ffffff" />
+            </svg>
+        </div>
+        <div className="absolute -bottom-1 -right-1 p-1 bg-slate-900/90 border border-purple-400/50 rounded-full shadow-md">
+            <Sparkles className="w-3 h-3 text-pink-300 animate-spin" />
+        </div>
+        <div className="absolute inset-0 bg-purple-500/15 blur-xl rounded-full"></div>
+    </motion.div>
+);
+
+const GAME_ICONS: Record<string, React.FC> = {
+    bejeweled: BejeweledIcon,
+    '1942': Game1942Icon,
+    game1942: Game1942Icon,
+    supermario: SuperMarioIcon,
+    tetris: TetrisIcon,
+    snake: SnakeIcon,
+    doodlejump: DoodleJumpIcon,
+    digger: DiggerIcon,
+    xonix: XonixIcon,
+    spaceinvaders: SpaceInvadersIcon,
+    poleposition: PolePositionIcon,
+    arkanoid: ArkanoidIcon,
+    columns: ColumnsIcon,
+    tapper: TapperIcon,
+    othello: OthelloIcon,
+    renju: RenjuIcon
 };
 
 interface GameMeta {
@@ -217,10 +282,13 @@ interface GameMeta {
 }
 
 const ALL_GAMES: GameMeta[] = [
+    { id: 'bejeweled', category: 'puzzle', badgeEmoji: '💎' },
+    { id: '1942', category: 'action', badgeEmoji: '✈️' },
     { id: 'supermario', category: 'action', badgeEmoji: '🍄' },
     { id: 'renju', category: 'puzzle', badgeEmoji: '⭐' },
     { id: 'othello', category: 'puzzle', badgeEmoji: '⚪' },
     { id: 'tetris', category: 'puzzle', badgeEmoji: '🟦' },
+    { id: 'columns', category: 'puzzle', badgeEmoji: '🔷' },
     { id: 'snake', category: 'arcade', badgeEmoji: '🐍' },
     { id: 'doodlejump', category: 'action', badgeEmoji: '🚀' },
     { id: 'digger', category: 'action', badgeEmoji: '⛏️' },
@@ -228,7 +296,6 @@ const ALL_GAMES: GameMeta[] = [
     { id: 'spaceinvaders', category: 'action', badgeEmoji: '👾' },
     { id: 'poleposition', category: 'action', badgeEmoji: '🏎️' },
     { id: 'arkanoid', category: 'arcade', badgeEmoji: '🧱' },
-    { id: 'columns', category: 'puzzle', badgeEmoji: '💎' },
     { id: 'tapper', category: 'arcade', badgeEmoji: '🍺' }
 ];
 
@@ -242,7 +309,7 @@ interface GameCardProps {
 
 const GameCard: React.FC<GameCardProps> = ({ id, index, onClick, onViewGuide, onViewPoster }) => {
     const info = GAME_DESCRIPTIONS[id];
-    const icon = GAME_ICONS[id];
+    const IconComponent = GAME_ICONS[id];
     if (!info) return null;
 
     const gameNumber = String(index + 1).padStart(2, '0');
@@ -261,7 +328,7 @@ const GameCard: React.FC<GameCardProps> = ({ id, index, onClick, onViewGuide, on
             {/* Middle Bar: Number Tag + Icon + Title + Genre */}
             <div className="flex items-start gap-3">
                 <div className="flex-shrink-0 p-2 bg-slate-900/90 rounded-xl border border-slate-700/80 group-hover:border-cyan-500/50 transition-colors">
-                    {icon}
+                    <IconComponent />
                 </div>
                 <div className="flex-grow min-w-0">
                     <div className="flex items-center justify-between gap-1 mb-0.5">

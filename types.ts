@@ -244,3 +244,178 @@ export interface RenjuBrainStats {
     lastLog: string[];
 }
 
+// 1942 Classic Vertical Shooter Types
+export type Game1942EnemyType = 'redScout' | 'greenZero' | 'heavyBomber' | 'bossSuperplane' | 'warship';
+export type Game1942PowerUpType = 'weapon' | 'wingmen' | 'megaCrash' | 'extraLoop' | 'bonusPoints' | 'life';
+
+export interface Game1942Player {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    speed: number;
+    lives: number;
+    loops: number; // Special loop maneuvers ("Mega Crash" dodge)
+    isLooping: boolean;
+    loopProgress: number; // 0 to 1
+    loopAngle: number; // 0 to 360 deg
+    loopScale: number; // Visual scale during 360 aerial loop
+    invulnerableTimer: number; // In frames / ms
+    weaponLevel: number; // 1 = dual guns, 2 = quad rapid, 3 = super spread
+    hasSidekicks: boolean; // Two companion wingmen fighters attached to wings
+    sidekicksAlive: [boolean, boolean]; // Left, Right wingmen
+    rollTilt: number; // -1 to 1 for visual banking left/right
+}
+
+export interface Game1942Bullet {
+    id: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    width: number;
+    height: number;
+    isPlayer: boolean;
+    damage: number;
+    color: string;
+    bulletType: 'normal' | 'heavy' | 'sidekick' | 'enemy' | 'enemyHeavy';
+}
+
+export interface Game1942Enemy {
+    id: string;
+    type: Game1942EnemyType;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    width: number;
+    height: number;
+    health: number;
+    maxHealth: number;
+    points: number;
+    formationId?: string;
+    formationIndex?: number;
+    isRedFormation?: boolean;
+    behavior: 'dive' | 'loop' | 'sway' | 'straight' | 'boss' | 'carrierEscort';
+    angle: number; // Heading in radians
+    timer: number;
+    shootTimer: number;
+    shootInterval: number;
+    flashing: number; // White flash hit feedback
+}
+
+export interface Game1942PowerUp {
+    id: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    width: number;
+    height: number;
+    type: Game1942PowerUpType;
+    label: string;
+    timer: number;
+}
+
+export interface Game1942Particle {
+    id: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    size: number;
+    color: string;
+    alpha: number;
+    life: number;
+    maxLife: number;
+    type: 'smoke' | 'spark' | 'explosion' | 'waterSplash' | 'propellerWash' | 'ring';
+}
+
+export interface Game1942Scenery {
+    id: string;
+    type: 'island' | 'carrier' | 'battleship' | 'atoll' | 'cloud';
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    speed: number;
+    scale?: number;
+    hasTurrets?: boolean;
+    turretHealth?: number[];
+}
+
+// Bejeweled Classic & Modern Match-3 Types
+export type BejeweledGemColor = 'red' | 'blue' | 'green' | 'purple' | 'yellow' | 'orange' | 'white';
+export type BejeweledSpecialType = 'normal' | 'flame' | 'star' | 'hypercube';
+
+export interface BejeweledGem {
+    id: string;
+    color: BejeweledGemColor;
+    special: BejeweledSpecialType;
+    isMatched?: boolean;
+    isNew?: boolean;
+    isHighlighted?: boolean;
+    animOffsetX?: number; // Visual slide interpolation in pixels
+    animOffsetY?: number;
+    scale?: number;
+    opacity?: number;
+}
+
+export type BejeweledCell = BejeweledGem | null | 'blocker';
+export type BejeweledBoard = BejeweledCell[][];
+
+export type BejeweledGameMode = 'classic' | 'timed' | 'moves' | 'zen' | 'custom';
+
+export interface BejeweledMove {
+    r1: number;
+    c1: number;
+    r2: number;
+    c2: number;
+}
+
+export interface BejeweledFloatingText {
+    id: string;
+    text: string;
+    x: number;
+    y: number;
+    color: string;
+    fontSize?: string;
+    timestamp: number;
+}
+
+export interface BejeweledParticle {
+    id: string;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    size: number;
+    alpha: number;
+    life: number;
+    maxLife: number;
+    shape?: 'circle' | 'spark' | 'star';
+}
+
+export interface BejeweledEditorConfig {
+    gridWidth: number;
+    gridHeight: number;
+    gameMode: BejeweledGameMode;
+    moveLimit: number;
+    timeLimit: number;
+    targetScore: number;
+}
+
+export interface BejeweledSavedLayout {
+    id: string;
+    name: string;
+    date: string;
+    gridWidth: number;
+    gridHeight: number;
+    cells: ({ color: BejeweledGemColor; special: BejeweledSpecialType } | null | 'blocker')[][];
+    gameMode: BejeweledGameMode;
+    moveLimit?: number;
+    timeLimit?: number;
+}
+
+

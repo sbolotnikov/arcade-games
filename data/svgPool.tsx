@@ -548,43 +548,184 @@ export const DOODLE_PLATFORM_SVG = `
 // ==============================================================================
 
 /**
- * Xonix Player: Sleek neon cybernetic cutter craft with thruster flame & energy shield
+ * Xonix Player: Sleek neon cybernetic cutter craft with rotating energy shield, animated dual ion thrusters & glowing cockpit
  */
 export const XONIX_PLAYER_SVG = `
 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="cutterBody" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#38bdf8" />
-      <stop offset="50%" stop-color="#0284c7" />
-      <stop offset="100%" stop-color="#0369a1" />
+      <stop offset="35%" stop-color="#0284c7" />
+      <stop offset="75%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#082f49" />
     </linearGradient>
     <radialGradient id="plasmaCore" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="#ffffff" />
-      <stop offset="50%" stop-color="#38bdf8" />
-      <stop offset="100%" stop-color="#0284c7" />
+      <stop offset="45%" stop-color="#67e8f9" />
+      <stop offset="80%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#082f49" />
+    </radialGradient>
+    <radialGradient id="shieldAura" cx="50%" cy="50%" r="50%">
+      <stop offset="50%" stop-color="#06b6d4" stop-opacity="0" />
+      <stop offset="88%" stop-color="#06b6d4" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.6" />
     </radialGradient>
     <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Outer Animated Holographic Energy Shield -->
+  <circle cx="50" cy="50" r="46" fill="url(#shieldAura)">
+    <animate attributeName="opacity" values="0.6;0.95;0.6" dur="2s" repeatCount="indefinite" />
+  </circle>
+  <g>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="14,8,4,8" opacity="0.85" />
+    <circle cx="50" cy="4" r="2.5" fill="#e0f2fe" />
+    <circle cx="96" cy="50" r="2.5" fill="#e0f2fe" />
+    <circle cx="50" cy="96" r="2.5" fill="#e0f2fe" />
+    <circle cx="4" cy="50" r="2.5" fill="#e0f2fe" />
+    <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite" />
+  </g>
+  <g>
+    <circle cx="50" cy="50" r="41" fill="none" stroke="#22d3ee" stroke-width="1.2" stroke-dasharray="6,12" opacity="0.5" />
+    <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="9s" repeatCount="indefinite" />
+  </g>
+  
+  <!-- Animated Dual Ion Thruster Jets -->
+  <!-- Left Thruster -->
+  <polygon points="42,68 37,86 47,86" fill="#06b6d4" opacity="0.9">
+    <animate attributeName="points" values="42,68 37,84 47,84; 42,68 35,95 49,95; 42,68 37,84 47,84" dur="0.18s" repeatCount="indefinite" />
+  </polygon>
+  <polygon points="42,68 39,80 45,80" fill="#ffffff">
+    <animate attributeName="points" values="42,68 39,78 45,78; 42,68 38,88 46,88; 42,68 39,78 45,78" dur="0.14s" repeatCount="indefinite" />
+  </polygon>
+  <!-- Right Thruster -->
+  <polygon points="58,68 53,86 63,86" fill="#06b6d4" opacity="0.9">
+    <animate attributeName="points" values="58,68 53,84 63,84; 58,68 51,95 65,95; 58,68 53,84 63,84" dur="0.18s" repeatCount="indefinite" />
+  </polygon>
+  <polygon points="58,68 55,80 61,80" fill="#ffffff">
+    <animate attributeName="points" values="58,68 55,78 61,78; 58,68 54,88 62,88; 58,68 55,78 61,78" dur="0.14s" repeatCount="indefinite" />
+  </polygon>
+  
+  <!-- Main Fighter Delta Hull -->
+  <polygon points="50,8 72,44 88,72 62,64 50,70 38,64 12,72 28,44" fill="url(#cutterBody)" stroke="#e0f2fe" stroke-width="2" filter="url(#neonGlow)" />
+  
+  <!-- Energy Conduits & Panel Inset Lines -->
+  <line x1="50" y1="12" x2="50" y2="40" stroke="#bae6fd" stroke-width="2" stroke-linecap="round" />
+  <line x1="32" y1="46" x2="20" y2="66" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" />
+  <line x1="68" y1="46" x2="80" y2="66" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round" />
+  
+  <!-- Cockpit Glass Canopy with Animated Plasma Heartbeat -->
+  <path d="M 50,26 Q 59,40 50,54 Q 41,40 50,26 Z" fill="url(#plasmaCore)" stroke="#bae6fd" stroke-width="1.2" />
+  <ellipse cx="48" cy="38" rx="3.5" ry="8" fill="#ffffff" opacity="0.85">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="1s" repeatCount="indefinite" />
+  </ellipse>
+  
+  <!-- Wingtip Lasers & Nose Quantum Reticle -->
+  <circle cx="12" cy="72" r="3.5" fill="#06b6d4" />
+  <circle cx="12" cy="72" r="1.8" fill="#ffffff" />
+  <circle cx="88" cy="72" r="3.5" fill="#06b6d4" />
+  <circle cx="88" cy="72" r="1.8" fill="#ffffff" />
+  
+  <!-- Nose Sensor Crystal -->
+  <polygon points="50,5 53,10 50,15 47,10" fill="#ffffff">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="0.6s" repeatCount="indefinite" />
+  </polygon>
+</svg>
+`;
+
+/**
+ * Xonix Player (Cutting Active): Overcharged plasma cutter craft with active laser drill, blazing afterburners & molten amber shield
+ */
+export const XONIX_PLAYER_CUTTING_SVG = `
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cutterBodyCutting" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="35%" stop-color="#ea580c" />
+      <stop offset="75%" stop-color="#dc2626" />
+      <stop offset="100%" stop-color="#7f1d1d" />
+    </linearGradient>
+    <radialGradient id="reactorCore" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="35%" stop-color="#fef08a" />
+      <stop offset="70%" stop-color="#f97316" />
+      <stop offset="100%" stop-color="#b91c1c" />
+    </radialGradient>
+    <radialGradient id="shieldAuraCutting" cx="50%" cy="50%" r="50%">
+      <stop offset="40%" stop-color="#f59e0b" stop-opacity="0" />
+      <stop offset="80%" stop-color="#f97316" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.7" />
+    </radialGradient>
+    <filter id="cuttingGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="3" result="blur" />
       <feComposite in="SourceGraphic" in2="blur" operator="over" />
     </filter>
   </defs>
-  <!-- Outer Energy Shield Ring -->
-  <circle cx="50" cy="50" r="44" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="6,4" opacity="0.75"/>
-  
-  <!-- Thruster exhaust flame -->
-  <polygon points="50,92 42,75 58,75" fill="#f97316" opacity="0.85"/>
-  <polygon points="50,86 45,75 55,75" fill="#fef08a"/>
-  
-  <!-- Main Fighter / Cutter Wedge Body -->
-  <polygon points="50,10 84,72 50,60 16,72" fill="url(#cutterBody)" stroke="#bae6fd" stroke-width="2" filter="url(#neonGlow)"/>
-  
-  <!-- Cockpit Glass Canopy -->
-  <ellipse cx="50" cy="42" rx="10" ry="16" fill="url(#plasmaCore)"/>
-  <ellipse cx="48" cy="38" rx="4" ry="8" fill="#ffffff" opacity="0.8"/>
-  
-  <!-- Wingtip Plasma Lasers -->
-  <circle cx="16" cy="72" r="3.5" fill="#f43f5e"/>
-  <circle cx="84" cy="72" r="3.5" fill="#f43f5e"/>
+
+  <!-- Overcharged Molten Shield Vortex -->
+  <circle cx="50" cy="50" r="46" fill="url(#shieldAuraCutting)">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="0.8s" repeatCount="indefinite" />
+  </circle>
+  <g>
+    <circle cx="50" cy="50" r="46" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="10,6,3,6" opacity="0.9" />
+    <circle cx="50" cy="4" r="3" fill="#fef08a" />
+    <circle cx="96" cy="50" r="3" fill="#fef08a" />
+    <circle cx="50" cy="96" r="3" fill="#fef08a" />
+    <circle cx="4" cy="50" r="3" fill="#fef08a" />
+    <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1.8s" repeatCount="indefinite" />
+  </g>
+
+  <!-- Active Forward Laser Plasma Lance Drill -->
+  <g>
+    <line x1="50" y1="10" x2="50" y2="-12" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+    <line x1="50" y1="10" x2="50" y2="-12" stroke="#f59e0b" stroke-width="7" opacity="0.6" stroke-linecap="round" />
+    <!-- High-frequency rotating cutting spark diamond at nose -->
+    <polygon points="50,-18 53,-12 60,-12 55,-7 57,-1 50,-5 43,-1 45,-7 40,-12 47,-12" fill="#fffbeb">
+      <animateTransform attributeName="transform" type="rotate" from="0 50 -10" to="360 50 -10" dur="0.2s" repeatCount="indefinite" />
+    </polygon>
+    <circle cx="50" cy="-10" r="7" fill="#fef08a" opacity="0.7">
+      <animate attributeName="r" values="5;9;5" dur="0.12s" repeatCount="indefinite" />
+    </circle>
+  </g>
+
+  <!-- Overpowered Twin Afterburners -->
+  <!-- Left Jet -->
+  <polygon points="42,68 35,92 49,92" fill="#ea580c">
+    <animate attributeName="points" values="42,68 35,90 49,90; 42,68 33,104 51,104; 42,68 35,90 49,90" dur="0.12s" repeatCount="indefinite" />
+  </polygon>
+  <polygon points="42,68 38,86 46,86" fill="#fef08a">
+    <animate attributeName="points" values="42,68 38,84 46,84; 42,68 36,96 48,96; 42,68 38,84 46,84" dur="0.09s" repeatCount="indefinite" />
+  </polygon>
+  <!-- Right Jet -->
+  <polygon points="58,68 51,92 65,92" fill="#ea580c">
+    <animate attributeName="points" values="58,68 51,90 65,90; 58,68 49,104 67,104; 58,68 51,90 65,90" dur="0.12s" repeatCount="indefinite" />
+  </polygon>
+  <polygon points="58,68 54,86 62,86" fill="#fef08a">
+    <animate attributeName="points" values="58,68 54,84 62,84; 58,68 52,96 64,96; 58,68 54,84 62,84" dur="0.09s" repeatCount="indefinite" />
+  </polygon>
+
+  <!-- Supercharged Fighter Hull -->
+  <polygon points="50,8 72,44 88,72 62,64 50,70 38,64 12,72 28,44" fill="url(#cutterBodyCutting)" stroke="#fef08a" stroke-width="2.5" filter="url(#cuttingGlow)" />
+
+  <!-- Molten Circuit Insets -->
+  <line x1="50" y1="12" x2="50" y2="40" stroke="#fef08a" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="32" y1="46" x2="20" y2="66" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+  <line x1="68" y1="46" x2="80" y2="66" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Reactor Canopy Core -->
+  <path d="M 50,26 Q 59,40 50,54 Q 41,40 50,26 Z" fill="url(#reactorCore)" stroke="#fef08a" stroke-width="1.5" />
+  <ellipse cx="48" cy="38" rx="4" ry="9" fill="#ffffff" opacity="0.95">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="0.4s" repeatCount="indefinite" />
+  </ellipse>
+
+  <!-- Wingtip Cutting Arc Lasers -->
+  <circle cx="12" cy="72" r="4.5" fill="#ea580c" />
+  <circle cx="12" cy="72" r="2.5" fill="#fef08a" />
+  <circle cx="88" cy="72" r="4.5" fill="#ea580c" />
+  <circle cx="88" cy="72" r="2.5" fill="#fef08a" />
 </svg>
 `;
 
@@ -1963,6 +2104,7 @@ export const SVG_POOL = {
   },
   xonix: {
     player: XONIX_PLAYER_SVG,
+    playerCutting: XONIX_PLAYER_CUTTING_SVG,
     enemySpike: XONIX_ENEMY_SPIKE_SVG,
   },
   polePosition: {
@@ -2083,10 +2225,10 @@ export const DoodlerSvg: React.FC<{ className?: string }> = ({ className }) => (
   />
 );
 
-export const XonixPlayerSvg: React.FC<{ className?: string }> = ({ className }) => (
+export const XonixPlayerSvg: React.FC<{ className?: string; isDrawing?: boolean }> = ({ className, isDrawing = false }) => (
   <div 
     className={`w-full h-full flex items-center justify-center ${className || ''}`}
-    dangerouslySetInnerHTML={{ __html: XONIX_PLAYER_SVG }}
+    dangerouslySetInnerHTML={{ __html: isDrawing ? XONIX_PLAYER_CUTTING_SVG : XONIX_PLAYER_SVG }}
   />
 );
 

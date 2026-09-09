@@ -9,6 +9,7 @@ import {
     XonixPlayerSvg,
     XonixEnemySvg
 } from '../data/svgPool';
+import { BejeweledGemView } from './BejeweledGemView';
 import { Palette, Copy, Check, ExternalLink, X, Sparkles, Layers } from 'lucide-react';
 
 interface SvgAssetManagerProps {
@@ -17,7 +18,7 @@ interface SvgAssetManagerProps {
 }
 
 export const SvgAssetManager: React.FC<SvgAssetManagerProps> = ({ isOpen, onClose }) => {
-    const [selectedGame, setSelectedGame] = useState<'all' | 'snake' | 'mario' | 'doodle' | 'xonix' | 'polePosition' | 'spaceInvaders' | 'tapper' | 'digger' | 'othello'>('all');
+    const [selectedGame, setSelectedGame] = useState<'all' | 'bejeweled' | 'snake' | 'mario' | 'doodle' | 'xonix' | 'polePosition' | 'spaceInvaders' | 'tapper' | 'digger' | 'othello'>('all');
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
     if (!isOpen) return null;
@@ -529,6 +530,103 @@ export const SvgAssetManager: React.FC<SvgAssetManagerProps> = ({ isOpen, onClos
                 <div className="w-16 h-16" dangerouslySetInnerHTML={{ __html: SVG_POOL.othello.brainAi }} />
             )
         },
+        // --- BEJEWELED FACETED GEMSTONES & SPECIAL POWERS ---
+        {
+            game: 'bejeweled',
+            title: 'Ruby (Red Hex Cushion Cut)',
+            key: 'bejeweled.ruby',
+            desc: 'Hexagonal cushion cut with table facet, pavilion reflections, and crystalline glints.',
+            svg: '<svg viewBox="0 0 100 100">Red Ruby Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="red" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Sapphire (Royal Blue Octagon Cut)',
+            key: 'bejeweled.sapphire',
+            desc: 'Royal octagon cut with deep ocean blue refractions and specular crown.',
+            svg: '<svg viewBox="0 0 100 100">Blue Sapphire Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="blue" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Emerald (Step Cut Rectangle)',
+            key: 'bejeweled.emerald',
+            desc: 'Vibrant green step-cut gem with beveled corners and lustrous inner pavilion.',
+            svg: '<svg viewBox="0 0 100 100">Green Emerald Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="green" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Amethyst (Purple Pear Cut)',
+            key: 'bejeweled.amethyst',
+            desc: 'Regal violet pear teardrop gemstone with multifaceted facets and ambient glow.',
+            svg: '<svg viewBox="0 0 100 100">Purple Amethyst Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="purple" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Topaz (Golden Brilliant Round)',
+            key: 'bejeweled.topaz',
+            desc: 'Brilliant round golden-amber gemstone with radiating starburst facets.',
+            svg: '<svg viewBox="0 0 100 100">Yellow Topaz Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="yellow" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Flame Gem (4-Match Area Detonator)',
+            key: 'bejeweled.flameGem',
+            desc: 'Charged gemstone enveloped in dancing dynamic fire aura that detonates 3x3 tiles.',
+            svg: '<svg viewBox="0 0 100 100">Flame Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="orange" special="flame" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Star Gem (T/L Match Cross Laser)',
+            key: 'bejeweled.starGem',
+            desc: 'Crystalline star jewel with dual-axis laser lens beams that wipe entire rows and columns.',
+            svg: '<svg viewBox="0 0 100 100">Star Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="white" special="star" size={60} />
+                </div>
+            )
+        },
+        {
+            game: 'bejeweled',
+            title: 'Hypercube (5-Match Cosmic Rainbow)',
+            key: 'bejeweled.hypercube',
+            desc: 'Legendary rotating hyper-dimensional cube that wipes all jewels of any chosen color.',
+            svg: '<svg viewBox="0 0 100 100">Hypercube Gem</svg>',
+            preview: (
+                <div className="w-16 h-16">
+                    <BejeweledGemView color="red" special="hypercube" size={60} />
+                </div>
+            )
+        },
     ];
 
     const filteredAssets = selectedGame === 'all' 
@@ -570,7 +668,7 @@ export const SvgAssetManager: React.FC<SvgAssetManagerProps> = ({ isOpen, onClos
                     <span className="text-slate-400 mr-2 flex items-center gap-1">
                         <Layers className="w-3.5 h-3.5" /> Filter Game:
                     </span>
-                    {(['all', 'digger', 'othello', 'snake', 'mario', 'doodle', 'xonix', 'polePosition', 'spaceInvaders', 'tapper'] as const).map(tab => (
+                    {(['all', 'bejeweled', 'digger', 'othello', 'snake', 'mario', 'doodle', 'xonix', 'polePosition', 'spaceInvaders', 'tapper'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => setSelectedGame(tab)}
@@ -582,6 +680,8 @@ export const SvgAssetManager: React.FC<SvgAssetManagerProps> = ({ isOpen, onClos
                         >
                             {tab === 'all' 
                                 ? 'All Games' 
+                                : tab === 'bejeweled'
+                                ? '💎 Bejeweled'
                                 : tab === 'digger'
                                 ? '⛏️ Digger'
                                 : tab === 'othello'
