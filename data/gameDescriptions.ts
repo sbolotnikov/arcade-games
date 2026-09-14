@@ -113,8 +113,8 @@ export const GAME_DESCRIPTIONS: Record<string, GameInfo> = {
             'Atmospheric space height gradient and high-altitude scoring'
         ],
         controls: {
-            keyboard: 'LEFT/RIGHT ARROWS to steer horizontally. SPACE for boost jump. P/ESC to pause.',
-            touch: 'Tap on-screen Left/Right buttons to guide leaps.'
+            keyboard: 'LEFT/RIGHT ARROWS to steer horizontally. SPACE to shoot. Hold UP ARROW to boost jump. P/ESC to pause.',
+            touch: 'Hold on-screen Left/Right buttons to move. Tap SHOOT to fire and hold BOOST to jump higher.'
         },
         tips: 'Wrap through the left and right screen borders to quickly reach high platforms on the opposite side!'
     },

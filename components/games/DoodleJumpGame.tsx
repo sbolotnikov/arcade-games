@@ -93,15 +93,14 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
             if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
                 moveRight();
             }
-            // Original shooting controls: Up arrow, W, or Space!
-            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+            // Hold Up to boost; Space fires a shot.
+            if (e.key === 'ArrowUp') {
                 e.preventDefault();
-                shoot();
+                holdJump();
             }
             if (e.key === ' ') {
                 e.preventDefault();
                 shoot();
-                holdJump();
             }
         };
 
@@ -109,7 +108,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
             if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd' || e.key === 'A' || e.key === 'D') {
                 stopMoving();
             }
-            if (e.key === ' ') {
+            if (e.key === 'ArrowUp') {
                 releaseJump();
             }
         };
@@ -132,15 +131,6 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
             gameAreaRef.current.focus();
         }
     }, [controlType, isGameOver, isPaused]);
-
-    // Handle clicking or tapping the notebook board to shoot towards that position!
-    const handleBoardClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (isGameOver || isPaused) return;
-        const rect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-        shoot(clickX, clickY);
-    };
 
     const currentLevelInfo = LEVEL_NAMES[level] || LEVEL_NAMES[5];
 
@@ -221,7 +211,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
 
                     {/* The Authentic Graph Paper Game Screen */}
                     <div 
-                        className="relative rounded-xl overflow-hidden cursor-crosshair border-2 border-amber-900/40 select-none"
+                        className="relative rounded-xl overflow-hidden border-2 border-amber-900/40 select-none"
                         style={{
                             width: gameWidth,
                             height: gameHeight,
@@ -235,7 +225,6 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                             backgroundPosition: `0 0, 0px ${totalScroll}px, 0px 0px`,
                             boxShadow: 'inset 0 0 20px rgba(120, 53, 15, 0.15), inset 0 2px 5px rgba(0,0,0,0.1)'
                         }}
-                        onClick={handleBoardClick}
                     >
                         {/* Authentic Doodle Jump In-Game Score Stamp (Top-Left) */}
                         <div className="absolute top-2 left-3 z-30 pointer-events-none font-mono flex flex-col">
@@ -469,8 +458,8 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                     <p className="bg-slate-900/80 px-4 py-1.5 rounded-full border border-slate-800">
                         <span className="font-bold text-amber-400">CONTROLS:</span>{' '}
                         <span className="text-slate-200 font-semibold">← / →</span> or <span className="text-slate-200 font-semibold">A / D</span> MOVE |{' '}
-                        <span className="text-yellow-300 font-bold">↑ / W / CLICK</span> SHOOT |{' '}
-                        <span className="text-slate-200 font-semibold">SPACE</span> BOOST/SHOOT |{' '}
+                        <span className="text-yellow-300 font-bold">SPACE</span> SHOOT |{' '}
+                        <span className="text-slate-200 font-semibold">UP ARROW</span> BOOST |{' '}
                         <span className="text-slate-200 font-semibold">P / ESC</span> PAUSE
                     </p>
                 </div>
@@ -485,6 +474,7 @@ const DoodleJumpGame: React.FC<DoodleJumpGameProps> = ({ playerName, controlType
                     isGameOver={isGameOver || isPaused} 
                     onHoldJump={holdJump} 
                     onReleaseJump={releaseJump}
+                    onShoot={shoot}
                 />
             )}
         </div>
