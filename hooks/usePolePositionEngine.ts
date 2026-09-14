@@ -7,6 +7,7 @@ import {
     getCachedSvgImage 
 } from '../data/svgPool';
 import { TERRAIN_THEMES, TerrainTheme } from '../utils/polePositionTrackGenerator';
+import { renderPolePositionLandscape } from '../utils/polePositionLandscapeRenderer';
 
 const FPS = 60;
 const STEP = 1 / FPS;
@@ -17,13 +18,31 @@ const FIELD_OF_VIEW = 100;
 const CAMERA_HEIGHT = 900;
 const CAMERA_DEPTH = 1 / Math.tan((FIELD_OF_VIEW / 2) * Math.PI / 180);
 const DRAW_DISTANCE = 320;
-const MAX_SPEED = SEGMENT_LENGTH / STEP;
-const ACCEL = MAX_SPEED / 4.8;
-const BREAKING = -MAX_SPEED * 1.2;
-const DECEL = -MAX_SPEED / 5;
-const OFF_ROAD_DECEL = -MAX_SPEED / 2.2;
-const OFF_ROAD_LIMIT = MAX_SPEED / 4;
-const MAX_LAPS = 2;
+const MAX_SPEED = 12500;
+const MAX_LAPS = 3;
+
+// Opponent teams with distinctive livery colors and speeds
+const OPPONENT_TEAMS = [
+    { id: 1, name: 'TEAM LOTUS', color: '#06b6d4', speedFactor: 0.86, startPct: 0.14 },
+    { id: 2, name: 'SCUDERIA RED', color: '#ef4444', speedFactor: 0.88, startPct: 0.28 },
+    { id: 3, name: 'WILLIAMS BLUE', color: '#3b82f6', speedFactor: 0.83, startPct: 0.42 },
+    { id: 4, name: 'MCLAREN ORANGE', color: '#f97316', speedFactor: 0.85, startPct: 0.55 },
+    { id: 5, name: 'BENETTON GREEN', color: '#10b981', speedFactor: 0.80, startPct: 0.68 },
+    { id: 6, name: 'RENAULT TURBO', color: '#eab308', speedFactor: 0.78, startPct: 0.80 },
+    { id: 7, name: 'TYRRELL PURPLE', color: '#a855f7', speedFactor: 0.76, startPct: 0.92 }
+];
+
+export interface OpponentCarState {
+    id: number;
+    name: string;
+    teamColor: string;
+    z: number;
+    x: number;
+    speed: number;
+    lap: number;
+    steerWobble: number;
+    progress: number; // 0 to 1 along current lap
+}
 
 // Billboard slogans for nostalgic 80s arcade feel
 const BILLBOARD_SLOGANS = [
@@ -43,15 +62,32 @@ interface RoadsideSprite {
     variant: number;
 }
 
+interface VisibleOpponent {
+    screenX: number;
+    screenY: number;
+    scale: number;
+    teamColor: string;
+    name: string;
+}
+
 export const usePolePositionEngine = (track: PolePositionTrack | null) => {
     const [gameState, setGameState] = useState<'menu' | 'racing' | 'paused' | 'finished'>('menu');
     const [speed, setSpeed] = useState(0);
+    const [displaySpeed, setDisplaySpeed] = useState(0);
     const [position, setPosition] = useState(0);
+    const [trackLength, setTrackLength] = useState(0);
+    const [trackProgress, setTrackProgress] = useState(0);
     const [playerX, setPlayerX] = useState(0);
     const [lapTime, setLapTime] = useState(0);
     const [lastLapTime, setLastLapTime] = useState(0);
     const [currentLap, setCurrentLap] = useState(1);
+    const [racePosition, setRacePosition] = useState(8);
     const [currentTheme, setCurrentTheme] = useState<TerrainTheme>('alpine');
+    const [currentElevation, setCurrentElevation] = useState(0);
+    const [currentCurve, setCurrentCurve] = useState(0);
+    const [overtakeNotice, setOvertakeNotice] = useState<string | null>(null);
+    const [collisionNotice, setCollisionNotice] = useState(false);
+    const [opponentsList, setOpponentsList] = useState<OpponentCarState[]>([]);
 
     const stateRef = useRef({
         speed: 0,
@@ -59,14 +95,23 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         playerX: 0,
         lapTime: 0,
         currentLap: 1,
+        racePosition: 8,
+        prevRacePosition: 8,
         trackLength: 0,
         segments: [] as any[],
-        opponents: [] as PolePositionOpponent[],
+        opponents: [] as OpponentCarState[],
         keys: {} as Record<string, boolean>,
-        theme: 'alpine' as TerrainTheme
+        theme: 'alpine' as TerrainTheme,
+        currentElevation: 0,
+        currentCurve: 0,
+        overtakeTimer: 0,
+        collisionTimer: 0,
+        animTime: 0,
+        customSvgImage: null as HTMLImageElement | null,
+        customLandscapeSvgImage: null as HTMLImageElement | null
     });
 
-    // --- Track Initialization with Smooth Procedural 3D Elevation & Scenery ---
+    // --- Track Initialization with Smooth Procedural 3D Elevation, Scenery & Opponents ---
     useEffect(() => {
         if (!track || !track.segments || track.segments.length === 0) return;
 
@@ -144,6 +189,22 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
             totalLength += s.length;
         });
 
+        // Initialize 7 AI Opponents distributed along the circuit
+        const opponents: OpponentCarState[] = OPPONENT_TEAMS.map((team, idx) => {
+            const startZ = Math.floor(totalLength * team.startPct);
+            return {
+                id: team.id,
+                name: team.name,
+                teamColor: team.color,
+                z: startZ,
+                x: (idx % 2 === 0 ? 0.35 : -0.35),
+                speed: MAX_SPEED * team.speedFactor,
+                lap: 1,
+                steerWobble: idx * 1.5,
+                progress: team.startPct
+            };
+        });
+
         stateRef.current.segments = segments;
         stateRef.current.trackLength = totalLength;
         stateRef.current.position = 0;
@@ -151,48 +212,102 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         stateRef.current.playerX = 0;
         stateRef.current.lapTime = 0;
         stateRef.current.currentLap = 1;
+        stateRef.current.racePosition = 8;
+        stateRef.current.prevRacePosition = 8;
+        stateRef.current.opponents = opponents;
+
+        setTrackLength(totalLength);
+        setPosition(0);
+        setSpeed(0);
+        setDisplaySpeed(0);
+        setTrackProgress(0);
         setCurrentLap(1);
+        setRacePosition(8);
+        setOpponentsList(opponents);
     }, [track]);
 
-    // --- Update Loop ---
+    // Cache user custom SVG roadside object and custom landscape SVG if provided
+    useEffect(() => {
+        if (track?.customSvg && track.customSvg.trim().length > 0) {
+            stateRef.current.customSvgImage = getCachedSvgImage('user_custom_roadside_svg', track.customSvg);
+        } else {
+            stateRef.current.customSvgImage = null;
+        }
+
+        if (track?.customLandscapeSvg && track.customLandscapeSvg.trim().length > 0) {
+            stateRef.current.customLandscapeSvgImage = getCachedSvgImage('user_custom_landscape_svg', track.customLandscapeSvg);
+        } else {
+            stateRef.current.customLandscapeSvgImage = null;
+        }
+    }, [track?.customSvg, track?.customLandscapeSvg]);
+
+    // --- Update Loop with Predictable Acceleration & Deceleration Physics ---
     const update = useCallback((dt: number) => {
         const state = stateRef.current;
         if (!state.segments || state.segments.length === 0) return;
 
-        const speedPercent = state.speed / MAX_SPEED;
-        const dx = dt * 2.2 * speedPercent;
+        // Strict clamp on delta time to prevent physics hitching on frame drops
+        const boundedDt = Math.min(0.033, Math.max(0.005, dt));
+        state.animTime += boundedDt;
 
-        if (state.keys['ArrowLeft'] || state.keys['a']) state.playerX -= dx;
-        if (state.keys['ArrowRight'] || state.keys['d']) state.playerX += dx;
+        const speedRatio = state.speed / MAX_SPEED;
 
-        // Centrifugal force based on current segment curvature (slides out of the center of the turn)
+        // Predictable Progressive Steering: responsive at low-mid speeds, stable at high speeds
+        const steerAuthority = 0.55 + 0.45 * Math.min(1.0, state.speed / (MAX_SPEED * 0.35));
+        const steerDx = boundedDt * 2.35 * steerAuthority;
+
+        if (state.keys['ArrowLeft'] || state.keys['a']) state.playerX -= steerDx;
+        if (state.keys['ArrowRight'] || state.keys['d']) state.playerX += steerDx;
+
+        // Centrifugal force based on current segment curvature
         const segmentIndex = Math.floor(state.position / SEGMENT_LENGTH);
         const playerSegment = state.segments[((segmentIndex % state.segments.length) + state.segments.length) % state.segments.length];
         
-        if (playerSegment) {
-            state.playerX += dx * playerSegment.curve * speedPercent * 1.1;
+        if (playerSegment && playerSegment.curve !== 0) {
+            // Pushes car outward (to the outside of the turn)
+            state.playerX -= playerSegment.curve * Math.pow(speedRatio, 1.4) * boundedDt * 1.6;
         }
 
-        // Acceleration & Braking
+        // -------------------------------------------------------------
+        // PREDICTABLE ACCELERATION, COASTING & BRAKING
+        // -------------------------------------------------------------
         if (state.keys['ArrowUp'] || state.keys['w']) {
-            state.speed += ACCEL * dt;
+            // Progressive throttle curve:
+            // High responsive torque from standstill, tapering smoothly as top speed is approached
+            const enginePower = 1 - Math.pow(speedRatio, 1.5) * 0.65;
+            const accel = (MAX_SPEED / 3.6) * enginePower;
+            state.speed += accel * boundedDt;
         } else if (state.keys['ArrowDown'] || state.keys['s']) {
-            state.speed += BREAKING * dt;
+            // Firm, predictable braking: stops from full speed in ~2.0s without violent instant halts
+            const brakeForce = MAX_SPEED / 1.95;
+            state.speed = Math.max(0, state.speed - brakeForce * boundedDt);
         } else {
-            state.speed += DECEL * dt;
+            // Gentle aerodynamic coast drag: predictable coast-down over ~14s allowing smooth cornering
+            const coastDecel = (MAX_SPEED / 14) * (0.35 + 0.65 * speedRatio);
+            state.speed = Math.max(0, state.speed - coastDecel * boundedDt);
         }
 
-        // Off-road penalty
-        if ((state.playerX < -1 || state.playerX > 1) && state.speed > OFF_ROAD_LIMIT) {
-            state.speed += OFF_ROAD_DECEL * dt;
+        // Proportional Off-Road Friction:
+        // Rumble strip (-1.0 to 1.0) has full grip.
+        // Off-road grass has progressive resistance proportional to depth instead of an instant cliff.
+        const absX = Math.abs(state.playerX);
+        if (absX > 1.0) {
+            const offRoadDepth = Math.min(1.0, (absX - 1.0) / 0.8);
+            const targetFloorSpeed = MAX_SPEED * (0.35 + 0.15 * (1 - offRoadDepth));
+            if (state.speed > targetFloorSpeed) {
+                const offRoadDrag = (MAX_SPEED / 2.8) * offRoadDepth;
+                state.speed = Math.max(targetFloorSpeed, state.speed - offRoadDrag * boundedDt);
+            }
         }
 
         state.speed = Math.max(0, Math.min(MAX_SPEED, state.speed));
         state.playerX = Math.max(-2.5, Math.min(2.5, state.playerX));
 
-        // Movement along track
+        // -------------------------------------------------------------
+        // TRACK PROGRESSION & AI OPPONENTS UPDATE
+        // -------------------------------------------------------------
         if (state.trackLength > 0) {
-            state.position += state.speed * dt;
+            state.position += state.speed * boundedDt;
             
             // Lap Completion Check
             if (state.position >= state.trackLength) {
@@ -206,14 +321,90 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
                     setGameState('finished');
                 }
             }
+
+            // Update AI Opponent cars
+            state.opponents.forEach((opp, i) => {
+                opp.z += opp.speed * boundedDt;
+                if (opp.z >= state.trackLength) {
+                    opp.z -= state.trackLength;
+                    opp.lap++;
+                }
+                opp.progress = opp.z / state.trackLength;
+                opp.steerWobble += boundedDt * 1.4;
+
+                // Subtle racing line swaying
+                const oppSegIdx = Math.floor(opp.z / SEGMENT_LENGTH);
+                const oppSeg = state.segments[oppSegIdx % state.segments.length];
+                const curveEffect = (oppSeg?.curve || 0) * 0.22;
+                opp.x = Math.max(-0.75, Math.min(0.75, Math.sin(opp.steerWobble + i) * 0.35 + curveEffect));
+
+                // Bumper collision detection with player
+                const relZ = Math.abs(opp.z - state.position);
+                if (relZ < 120 && Math.abs(state.playerX - opp.x) < 0.32) {
+                    // Slight deflection nudge
+                    state.playerX += (state.playerX > opp.x ? 0.08 : -0.08);
+                    state.speed = Math.max(0, state.speed - MAX_SPEED * 0.12 * boundedDt);
+                    state.collisionTimer = 0.2;
+                    setCollisionNotice(true);
+                }
+            });
+
+            // Calculate live Race Position (1 to 8)
+            const playerTotalDist = (state.currentLap - 1) * state.trackLength + state.position;
+            const opponentsAhead = state.opponents.filter(o => ((o.lap - 1) * state.trackLength + o.z) > playerTotalDist).length;
+            const currentRank = 1 + opponentsAhead;
+
+            if (currentRank < state.prevRacePosition) {
+                // Overtake!
+                state.overtakeTimer = 2.2;
+                setOvertakeNotice(`OVERTAKE! P${currentRank}`);
+            }
+            state.prevRacePosition = currentRank;
+            state.racePosition = currentRank;
+            setRacePosition(currentRank);
         }
-        state.lapTime += dt;
+
+        // Timers
+        if (state.overtakeTimer > 0) {
+            state.overtakeTimer -= boundedDt;
+            if (state.overtakeTimer <= 0) setOvertakeNotice(null);
+        }
+        if (state.collisionTimer > 0) {
+            state.collisionTimer -= boundedDt;
+            if (state.collisionTimer <= 0) setCollisionNotice(false);
+        }
+
+        state.lapTime += boundedDt;
+
+        // Current segment metrics for HUD with lookahead for upcoming turns
+        const currentElevationVal = playerSegment?.elevation || 0;
+        let activeCurveVal = playerSegment?.curve || 0;
+        
+        // If current segment is straight or mild, look ahead up to 24 segments (~190m) for timely turn instruction
+        if (Math.abs(activeCurveVal) < 0.6) {
+            for (let la = 1; la <= 24; la++) {
+                const aheadIdx = ((segmentIndex + la) % state.segments.length + state.segments.length) % state.segments.length;
+                const aheadSeg = state.segments[aheadIdx];
+                if (aheadSeg && Math.abs(aheadSeg.curve) >= 0.8) {
+                    activeCurveVal = aheadSeg.curve;
+                    break;
+                }
+            }
+        }
+
+        state.currentElevation = currentElevationVal;
+        state.currentCurve = activeCurveVal;
 
         // Sync to React
         setSpeed(state.speed);
+        setDisplaySpeed(Math.round((state.speed / MAX_SPEED) * 285));
         setPosition(state.position);
+        setTrackProgress(state.trackLength > 0 ? state.position / state.trackLength : 0);
         setPlayerX(state.playerX);
         setLapTime(state.lapTime);
+        setCurrentElevation(currentElevationVal);
+        setCurrentCurve(activeCurveVal);
+        setOpponentsList([...state.opponents]);
     }, []);
 
     // Helper to draw vector roadside scenery on canvas
@@ -235,10 +426,223 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
             return;
         }
 
-        if (type === 'palm_tree') {
-            // Tropical Palm Tree
+        if (type === 'custom_svg' || (track?.customSvg && type === 'custom_object')) {
+            // User Custom SVG Roadside Object
+            const customImg = stateRef.current.customSvgImage;
+            if (customImg && customImg.complete && customImg.naturalWidth > 0) {
+                const propW = baseSize * 1.5;
+                const propH = propW * (customImg.naturalHeight / customImg.naturalWidth);
+                ctx.drawImage(customImg, -propW / 2, -propH, propW, propH);
+            } else {
+                // Stylish Arcade Checkered Trophy / Banner Fallback
+                const propW = baseSize * 1.4;
+                const propH = baseSize * 1.6;
+                ctx.fillStyle = '#f59e0b';
+                ctx.fillRect(-propW * 0.1, -propH, propW * 0.2, propH);
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.moveTo(-propW * 0.1, -propH);
+                ctx.lineTo(propW * 0.6, -propH * 0.75);
+                ctx.lineTo(-propW * 0.1, -propH * 0.5);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+        } else if (type === 'cactus') {
+            // Giant Desert Saguaro Cactus with ribs and blooms
+            const trunkH = baseSize * 1.8;
+            const trunkW = baseSize * 0.28;
+
+            // Ground Contact Shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, trunkW * 1.2, trunkW * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Saguaro Main Trunk
+            ctx.fillStyle = '#15803d';
+            ctx.strokeStyle = '#14532d';
+            ctx.lineWidth = Math.max(1.5, baseSize * 0.02);
+            ctx.beginPath();
+            ctx.roundRect(-trunkW / 2, -trunkH, trunkW, trunkH, [trunkW / 2, trunkW / 2, 4, 4]);
+            ctx.fill();
+            ctx.stroke();
+
+            // Vertical Fluted Ribs
+            ctx.strokeStyle = '#166534';
+            ctx.lineWidth = Math.max(1, baseSize * 0.015);
+            ctx.beginPath();
+            ctx.moveTo(-trunkW * 0.22, -trunkH + trunkW * 0.4);
+            ctx.lineTo(-trunkW * 0.22, 0);
+            ctx.moveTo(trunkW * 0.22, -trunkH + trunkW * 0.4);
+            ctx.lineTo(trunkW * 0.22, 0);
+            ctx.stroke();
+
+            // Left Branch Arm
+            const armW = trunkW * 0.75;
+            const armH = trunkH * 0.45;
+            const armY = -trunkH * 0.55;
+            ctx.fillStyle = '#15803d';
+            ctx.strokeStyle = '#14532d';
+            ctx.beginPath();
+            ctx.moveTo(-trunkW / 2, armY);
+            ctx.lineTo(-trunkW / 2 - armW * 1.3, armY);
+            ctx.lineTo(-trunkW / 2 - armW * 1.3, armY - armH);
+            ctx.arc(-trunkW / 2 - armW * 0.8, armY - armH, armW / 2, Math.PI, 0);
+            ctx.lineTo(-trunkW / 2 - armW * 0.3, armY + armW);
+            ctx.lineTo(-trunkW / 2, armY + armW);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Right Branch Arm (Slightly higher)
+            const rArmY = -trunkH * 0.65;
+            ctx.beginPath();
+            ctx.moveTo(trunkW / 2, rArmY);
+            ctx.lineTo(trunkW / 2 + armW * 1.3, rArmY);
+            ctx.lineTo(trunkW / 2 + armW * 1.3, rArmY - armH * 0.9);
+            ctx.arc(trunkW / 2 + armW * 0.8, rArmY - armH * 0.9, armW / 2, 0, Math.PI, true);
+            ctx.lineTo(trunkW / 2 + armW * 0.3, rArmY + armW);
+            ctx.lineTo(trunkW / 2, rArmY + armW);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Desert Yellow/Magenta Flower on Crown
+            ctx.fillStyle = variant % 2 === 0 ? '#facc15' : '#f43f5e';
+            ctx.beginPath();
+            ctx.arc(0, -trunkH - 2, Math.max(3, baseSize * 0.05), 0, Math.PI * 2);
+            ctx.fill();
+
+        } else if (type === 'windmill') {
+            // Modern Coastal / Mountain Wind Turbine with Animated Spinning Rotor
+            const towerH = baseSize * 2.3;
+            const towerBottomW = baseSize * 0.18;
+            const towerTopW = baseSize * 0.08;
+
+            // Sleek White Tapered Pylon Tower
+            ctx.fillStyle = '#e2e8f0';
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = Math.max(1, baseSize * 0.015);
+            ctx.beginPath();
+            ctx.moveTo(-towerBottomW / 2, 0);
+            ctx.lineTo(-towerTopW / 2, -towerH);
+            ctx.lineTo(towerTopW / 2, -towerH);
+            ctx.lineTo(towerBottomW / 2, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Nacelle Pod
+            ctx.fillStyle = '#cbd5e1';
+            ctx.beginPath();
+            ctx.roundRect(-baseSize * 0.14, -towerH - baseSize * 0.08, baseSize * 0.32, baseSize * 0.16, 4);
+            ctx.fill();
+            ctx.stroke();
+
+            // Rotor Hub
+            const rotorX = 0;
+            const rotorY = -towerH;
+            ctx.fillStyle = '#475569';
+            ctx.beginPath();
+            ctx.arc(rotorX, rotorY, Math.max(3, baseSize * 0.07), 0, Math.PI * 2);
+            ctx.fill();
+
+            // 3 Spinning Aerodynamic Blades
+            const rotorAngle = stateRef.current.animTime * 3.4 + variant * 1.5;
+            const bladeLen = baseSize * 1.35;
+            const bladeW = baseSize * 0.12;
+
+            for (let b = 0; b < 3; b++) {
+                const angle = rotorAngle + (b * (Math.PI * 2 / 3));
+                ctx.save();
+                ctx.translate(rotorX, rotorY);
+                ctx.rotate(angle);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.strokeStyle = '#94a3b8';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(-bladeW / 2, -bladeLen * 0.4);
+                ctx.lineTo(-bladeW * 0.25, -bladeLen);
+                ctx.lineTo(bladeW * 0.25, -bladeLen);
+                ctx.lineTo(bladeW / 2, -bladeLen * 0.4);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+
+                // Red Tip Safety Striping
+                ctx.fillStyle = '#ef4444';
+                ctx.fillRect(-bladeW * 0.25, -bladeLen, bladeW * 0.5, bladeLen * 0.18);
+
+                ctx.restore();
+            }
+
+        } else if (type === 'floodlight') {
+            // Grand Prix Stadium Floodlight Tower
+            const mastH = baseSize * 2.2;
+            const mastW = baseSize * 0.24;
+
+            // Galvanized Steel Truss Mast
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = Math.max(1.5, baseSize * 0.02);
+            ctx.strokeRect(-mastW / 2, -mastH, mastW, mastH);
+            // X-bracing
+            const numX = 5;
+            for (let xIdx = 0; xIdx < numX; xIdx++) {
+                const yTop = -mastH + (xIdx * (mastH / numX));
+                const yBot = yTop + (mastH / numX);
+                ctx.beginPath();
+                ctx.moveTo(-mastW / 2, yTop);
+                ctx.lineTo(mastW / 2, yBot);
+                ctx.moveTo(mastW / 2, yTop);
+                ctx.lineTo(-mastW / 2, yBot);
+                ctx.stroke();
+            }
+
+            // High-Output Floodlight Bank Head
+            const bankW = baseSize * 1.5;
+            const bankH = baseSize * 0.6;
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-bankW / 2, -mastH - bankH, bankW, bankH);
+            ctx.strokeStyle = '#64748b';
+            ctx.strokeRect(-bankW / 2, -mastH - bankH, bankW, bankH);
+
+            // 12 Glowing Floodlight Lenses
+            const cols = 4;
+            const rows = 3;
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows; r++) {
+                    const lx = -bankW / 2 + (c + 0.5) * (bankW / cols);
+                    const ly = -mastH - bankH + (r + 0.5) * (bankH / rows);
+                    ctx.fillStyle = '#fef08a';
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, Math.max(2, baseSize * 0.05), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Radiant Floodlight Beam on Road
+            ctx.save();
+            const beamGrad = ctx.createRadialGradient(0, -mastH, 10, 0, 0, baseSize * 1.8);
+            beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.35)');
+            beamGrad.addColorStop(0.7, 'rgba(254, 240, 138, 0.08)');
+            beamGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+            ctx.fillStyle = beamGrad;
+            ctx.beginPath();
+            ctx.moveTo(-bankW / 2, -mastH);
+            ctx.lineTo(bankW / 2, -mastH);
+            ctx.lineTo(bankW * 1.6, 0);
+            ctx.lineTo(-bankW * 1.6, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+        } else if (type === 'palm_tree') {
+            // Tropical Palm Tree with Animated Wind Sway
             const trunkH = baseSize * 1.6;
-            const lean = (side === 'left' ? -1 : 1) * (baseSize * 0.25);
+            const sway = Math.sin(stateRef.current.animTime * 2.8 + variant) * (baseSize * 0.12);
+            const lean = ((side === 'left' ? -1 : 1) * (baseSize * 0.25)) + sway;
 
             // Curved Trunk
             ctx.strokeStyle = '#854d0e';
@@ -258,7 +662,7 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
 
             const frondCount = 7;
             for (let f = 0; f < frondCount; f++) {
-                const angle = (f / frondCount) * Math.PI * 2 + (variant * 0.2);
+                const angle = (f / frondCount) * Math.PI * 2 + (variant * 0.2) + Math.sin(stateRef.current.animTime * 3 + f) * 0.08;
                 const frondLength = baseSize * 0.9;
                 ctx.save();
                 ctx.rotate(angle);
@@ -322,14 +726,18 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(-boardW / 2 - 2, -poleH - boardH - 2, boardW + 4, boardH + 4);
 
-            // Board Face
+            // Board Face with Neon Glow
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(-boardW / 2, -poleH - boardH, boardW, boardH);
 
-            // Neon Border
+            // Animated Pulsing Neon Border
+            ctx.save();
+            const neonPulse = 0.7 + Math.sin(stateRef.current.animTime * 5 + variant) * 0.3;
             ctx.strokeStyle = slogan.color;
+            ctx.globalAlpha = neonPulse;
             ctx.lineWidth = Math.max(2, baseSize * 0.04);
             ctx.strokeRect(-boardW / 2 + 4, -poleH - boardH + 4, boardW - 8, boardH - 8);
+            ctx.restore();
 
             // Text
             if (baseSize > 40) {
@@ -359,15 +767,16 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
             ctx.fillStyle = '#3b82f6';
             ctx.fillRect(-standW / 2, -standH * 0.35, standW, standH * 0.35);
 
-            // Colorful Crowds / Flags
+            // Animated Cheering Crowds / Pennants
             if (baseSize > 30) {
-                const fanColors = ['#fde047', '#38bdf8', '#4ade80', '#fb7185', '#c084fc'];
+                const fanColors = ['#fde047', '#38bdf8', '#4ade80', '#fb7185', '#c084fc', '#f97316'];
                 const fanCount = 10;
                 for (let i = 0; i < fanCount; i++) {
                     const fx = -standW / 2 + (i + 0.5) * (standW / fanCount);
+                    const cheerJump = Math.sin(stateRef.current.animTime * 7 + i * 1.5 + variant) * (baseSize * 0.04);
                     ctx.fillStyle = fanColors[(i + variant) % fanColors.length];
                     ctx.beginPath();
-                    ctx.arc(fx, -standH - Math.sin(i * 2 + variant) * 4, Math.max(2, baseSize * 0.06), 0, Math.PI * 2);
+                    ctx.arc(fx, -standH - 4 + cheerJump, Math.max(2, baseSize * 0.06), 0, Math.PI * 2);
                     ctx.fill();
                 }
             }
@@ -443,60 +852,21 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         const cameraY = CAMERA_HEIGHT + playerElevation;
 
         // ========================================================
-        // 1. RETRO PARALLAX HORIZON & SKY
+        // 1. RICH ANIMATED PARALLAX HORIZON & DETAILED LANDSCAPE
         // ========================================================
-        const skyGrad = ctx.createLinearGradient(0, 0, 0, height / 2);
-        skyGrad.addColorStop(0, themeConfig.skyTop);
-        skyGrad.addColorStop(1, themeConfig.skyBottom);
-        ctx.fillStyle = skyGrad;
-        ctx.fillRect(0, 0, width, height / 2);
-
-        // Glowing Horizon Sun
-        const sunX = (width / 2) - (playerX * 30);
-        const sunY = height * 0.26;
-        const sunGrad = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 70);
-        sunGrad.addColorStop(0, '#fef08a');
-        sunGrad.addColorStop(0.5, '#f97316');
-        sunGrad.addColorStop(1, 'rgba(249, 115, 22, 0)');
-        ctx.fillStyle = sunGrad;
-        ctx.beginPath();
-        ctx.arc(sunX, sunY, 70, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Parallax Mountain Ridges
         const curveOffset = baseSegment.curve * 50;
-        const parallaxX = (playerX * 45) + curveOffset;
-
-        // Far Mountains
-        ctx.fillStyle = themeConfig.mountainFar;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        const peakWidth = width / 5;
-        for (let p = -2; p <= 6; p++) {
-            const mx = p * peakWidth - (parallaxX * 0.3) % peakWidth;
-            const mh = (p % 2 === 0 ? 90 : 60);
-            ctx.lineTo(mx - peakWidth / 2, height / 2);
-            ctx.lineTo(mx, height / 2 - mh);
-            ctx.lineTo(mx + peakWidth / 2, height / 2);
-        }
-        ctx.lineTo(width, height / 2);
-        ctx.closePath();
-        ctx.fill();
-
-        // Near Hills
-        ctx.fillStyle = themeConfig.mountainNear;
-        ctx.beginPath();
-        ctx.moveTo(0, height / 2);
-        for (let p = -2; p <= 6; p++) {
-            const hx = p * peakWidth * 0.8 - (parallaxX * 0.7) % (peakWidth * 0.8);
-            const hh = (p % 2 === 0 ? 55 : 35);
-            ctx.lineTo(hx - peakWidth * 0.4, height / 2);
-            ctx.lineTo(hx, height / 2 - hh);
-            ctx.lineTo(hx + peakWidth * 0.4, height / 2);
-        }
-        ctx.lineTo(width, height / 2);
-        ctx.closePath();
-        ctx.fill();
+        renderPolePositionLandscape({
+            ctx,
+            width,
+            height,
+            theme: state.theme,
+            themeConfig,
+            playerX,
+            curveOffset,
+            animTime: state.animTime,
+            customLandscapeSvg: track?.customLandscapeSvg,
+            customSvgImage: state.customLandscapeSvgImage
+        });
 
         // Flat Ground base
         ctx.fillStyle = themeConfig.grassDark;
@@ -529,7 +899,8 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
             const looped = segmentIndex >= segments.length;
             const loopOffset = looped ? trackLength : 0;
             
-            const cameraX = playerX * ROAD_WIDTH + x;
+            // Camera is at playerX; positive x displacement of road renders road bending to the right
+            const cameraX = playerX * ROAD_WIDTH - x;
             const cameraZ = position - loopOffset;
 
             project(segment.p1, cameraX, cameraY, cameraZ, CAMERA_DEPTH, width, height, ROAD_WIDTH * segment.width);
@@ -604,12 +975,94 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         }
 
         // ========================================================
-        // 3. DRAW ROADSIDE SCENERY (Back-to-Front depth sorting)
+        // 3. DRAW ROADSIDE SCENERY & 3D AI OPPONENTS
         // ========================================================
+        // Collect visible opponents within draw distance
+        const visibleOpponents: VisibleOpponent[] = [];
+        stateRef.current.opponents.forEach(opp => {
+            const relDist = (opp.z >= position ? opp.z - position : opp.z + trackLength - position);
+            if (relDist > 60 && relDist < DRAW_DISTANCE * SEGMENT_LENGTH) {
+                const oppSegIdx = Math.floor(opp.z / SEGMENT_LENGTH);
+                const oppSegment = segments[oppSegIdx % segments.length];
+                if (oppSegment && oppSegment.p1 && oppSegment.p1.screen.scale > 0.001) {
+                    const oppScreenX = oppSegment.p1.screen.x + (opp.x * oppSegment.p1.screen.w);
+                    const oppScreenY = oppSegment.p1.screen.y;
+                    if (oppScreenY < height && oppScreenY > 0) {
+                        visibleOpponents.push({
+                            screenX: oppScreenX,
+                            screenY: oppScreenY,
+                            scale: oppSegment.p1.screen.scale,
+                            teamColor: opp.teamColor,
+                            name: opp.name
+                        });
+                    }
+                }
+            }
+        });
+
+        // Depth sorting: Back-to-Front
         for (let s = roadsideSpritesToRender.length - 1; s >= 0; s--) {
             const spr = roadsideSpritesToRender[s];
             drawScenerySprite(ctx, spr.type, spr.screenX, spr.screenY, spr.scale, spr.variant, spr.side);
         }
+
+        // Render visible opponents
+        visibleOpponents.sort((a, b) => a.scale - b.scale); // smallest scale (farthest) first
+        visibleOpponents.forEach(opp => {
+            const oppW = Math.max(10, Math.min(260, 240 * opp.scale * 1.05));
+            const oppH = oppW * (120 / 240);
+            if (oppW < 4) return;
+
+            ctx.save();
+            ctx.translate(opp.screenX, opp.screenY - oppH);
+
+            // Ground shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            ctx.beginPath();
+            ctx.ellipse(0, oppH * 0.96, oppW * 0.44, oppH * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tires
+            const tireW = oppW * 0.18;
+            const tireH = oppH * 0.54;
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(-oppW * 0.48, oppH * 0.38, tireW, tireH);
+            ctx.fillRect(oppW * 0.48 - tireW, oppH * 0.38, tireW, tireH);
+
+            // Rear Wing / Spoiler
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(-oppW * 0.5, oppH * 0.12, oppW, oppH * 0.16);
+            ctx.fillStyle = opp.teamColor;
+            ctx.fillRect(-oppW * 0.46, oppH * 0.14, oppW * 0.92, oppH * 0.08);
+
+            // Main F1 Chassis
+            ctx.fillStyle = opp.teamColor;
+            ctx.beginPath();
+            ctx.moveTo(-oppW * 0.28, oppH * 0.88);
+            ctx.lineTo(-oppW * 0.35, oppH * 0.32);
+            ctx.lineTo(oppW * 0.35, oppH * 0.32);
+            ctx.lineTo(oppW * 0.28, oppH * 0.88);
+            ctx.closePath();
+            ctx.fill();
+
+            // Cockpit & Engine Air Scoop
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(-oppW * 0.11, oppH * 0.22, oppW * 0.22, oppH * 0.36);
+
+            // Driver Helmet
+            ctx.fillStyle = '#facc15';
+            ctx.beginPath();
+            ctx.arc(0, oppH * 0.32, Math.max(1.8, oppW * 0.085), 0, Math.PI * 2);
+            ctx.fill();
+
+            // Red Rain/Tail Light
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.arc(0, oppH * 0.74, Math.max(1.2, oppW * 0.04), 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        });
 
         // ========================================================
         // 4. DRAW PLAYER F1 SUPERCAR (Vector SVG with steering lean)
@@ -638,6 +1091,18 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         } else {
             ctx.fillStyle = '#dc2626';
             ctx.fillRect(carX, carY, carW, carH);
+        }
+
+        // Collision or spark effect
+        if (stateRef.current.collisionTimer > 0) {
+            ctx.fillStyle = '#facc15';
+            for (let k = 0; k < 8; k++) {
+                const spkX = carX + (k % 2 === 0 ? carW * 0.1 : carW * 0.9) + (Math.random() * 24 - 12);
+                const spkY = carY + carH * 0.6 + (Math.random() * 20 - 10);
+                ctx.beginPath();
+                ctx.arc(spkX, spkY, Math.random() * 3 + 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     }, []);
 
@@ -676,17 +1141,62 @@ export const usePolePositionEngine = (track: PolePositionTrack | null) => {
         stateRef.current.keys[key] = pressed;
     }, []);
 
+    const resetRace = useCallback(() => {
+        const state = stateRef.current;
+        state.speed = 0;
+        state.position = 0;
+        state.playerX = 0;
+        state.lapTime = 0;
+        state.currentLap = 1;
+        state.racePosition = 8;
+        state.prevRacePosition = 8;
+        
+        // Re-initialize opponents
+        if (state.trackLength > 0) {
+            state.opponents.forEach((opp, idx) => {
+                const team = OPPONENT_TEAMS[idx] || OPPONENT_TEAMS[0];
+                opp.z = Math.floor(state.trackLength * team.startPct);
+                opp.lap = 1;
+                opp.progress = team.startPct;
+            });
+        }
+
+        setSpeed(0);
+        setDisplaySpeed(0);
+        setPosition(0);
+        setTrackProgress(0);
+        setPlayerX(0);
+        setLapTime(0);
+        setCurrentLap(1);
+        setRacePosition(8);
+        setOvertakeNotice(null);
+        setCollisionNotice(false);
+        setGameState('racing');
+    }, []);
+
     return {
         gameState,
         setGameState,
         speed,
+        displaySpeed,
         position,
+        trackLength,
+        trackProgress,
         playerX,
         lapTime,
         lastLapTime,
         currentLap,
+        maxLaps: MAX_LAPS,
+        racePosition,
+        totalRacers: 8,
+        opponents: opponentsList,
         currentTheme,
+        currentElevation,
+        currentCurve,
+        overtakeNotice,
+        collisionNotice,
         render,
-        setKey
+        setKey,
+        resetRace
     };
 };

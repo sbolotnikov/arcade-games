@@ -31,13 +31,88 @@ export interface Doodler {
     vy: number; // vertical velocity
     vx: number; // horizontal velocity
     direction: 'left' | 'right';
+    isShooting?: boolean;
+    shootAngle?: number; // in degrees (default 270 or towards aim)
+    shootCooldown?: number;
 }
 
+export type DoodlePlatformType = 'standard' | 'moving' | 'broken' | 'cloud';
+
 export interface Platform {
+    id: number;
     x: number;
     y: number;
     width: number;
     height: number;
+    type: DoodlePlatformType;
+    vx?: number;
+    broken?: boolean;
+    breakProgress?: number;
+    hasSpring?: boolean;
+    hasTrampoline?: boolean;
+    springExtended?: boolean;
+}
+
+export type DoodleMonsterType = 'spiky' | 'cyclops' | 'ufo' | 'blackhole';
+
+export interface DoodleMonster {
+    id: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    type: DoodleMonsterType;
+    vx: number;
+    baseX: number;
+    alive: boolean;
+    floatOffset?: number;
+}
+
+export type DoodleFallingObstacleType = 'meteor' | 'soccer_ball' | 'anvil' | 'alien_egg';
+
+export interface DoodleFallingObstacle {
+    id: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    vy: number;
+    vx: number;
+    type: DoodleFallingObstacleType;
+    rotation: number;
+    rotationSpeed: number;
+    warningTimer: number; // >0 means displaying warning at top of screen
+    active: boolean;
+}
+
+export interface DoodleProjectile {
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    radius: number;
+}
+
+export interface DoodleParticle {
+    id: number;
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    color: string;
+    size: number;
+    life: number;
+    maxLife: number;
+}
+
+export interface DoodleScorePopup {
+    id: number;
+    x: number;
+    y: number;
+    text: string;
+    color: string;
+    life: number;
 }
 
 // Digger Types
@@ -110,6 +185,8 @@ export interface PolePositionTrack {
     id: string;
     name: string;
     segments: PolePositionSegment[];
+    customSvg?: string;
+    customLandscapeSvg?: string;
 }
 
 export interface PolePositionSprite {
@@ -417,5 +494,79 @@ export interface BejeweledSavedLayout {
     moveLimit?: number;
     timeLimit?: number;
 }
+
+// Dots (Точки) Types
+export type DotsPlayerColor = 'blue' | 'red';
+export type DotsAiDifficulty = 'easy' | 'medium' | 'hard';
+export type DotsGameMode = 'pve' | 'pvp' | 'eve';
+export type DotsGridSize = 15 | 20 | 25;
+export type DotsStartSetup = 'cross4' | 'empty';
+export type DotsWinCondition = 'score10' | 'score15' | 'score20' | 'endless';
+export type DotsBoardTheme = 'notebook' | 'blueprint';
+
+export interface DotsPoint {
+    r: number;
+    c: number;
+}
+
+export interface DotsCell {
+    r: number;
+    c: number;
+    owner: DotsPlayerColor | null;
+    capturedBy: DotsPlayerColor | null;
+    enclosedIn: number | null;
+    moveNumber?: number;
+}
+
+export interface DotsEncirclement {
+    id: number;
+    owner: DotsPlayerColor;
+    border: DotsPoint[];
+    capturedEnemyPoints: DotsPoint[];
+    capturedFriendlyPoints: DotsPoint[];
+    areaPoints: DotsPoint[];
+    parentId: number | null;
+    createdAtMove: number;
+}
+
+export interface DotsMove {
+    r: number;
+    c: number;
+    color: DotsPlayerColor;
+    moveNumber: number;
+    timestamp: number;
+    capturesCount: number;
+    encirclementIds: number[];
+}
+
+export interface DotsGameState {
+    board: DotsCell[][];
+    gridSize: DotsGridSize;
+    turn: DotsPlayerColor;
+    playerColor: DotsPlayerColor;
+    gameMode: DotsGameMode;
+    aiDifficulty: DotsAiDifficulty;
+    startSetup: DotsStartSetup;
+    winCondition: DotsWinCondition;
+    theme: DotsBoardTheme;
+    isGameOver: boolean;
+    winner: DotsPlayerColor | 'draw' | null;
+    statusMessage: string;
+    scores: {
+        blue: number;
+        red: number;
+    };
+    territoryCounts: {
+        blue: number;
+        red: number;
+    };
+    encirclements: DotsEncirclement[];
+    moveHistory: DotsMove[];
+    lastMove: DotsPoint | null;
+    isAiThinking: boolean;
+    consecutivePasses: number;
+    soundEnabled: boolean;
+}
+
 
 

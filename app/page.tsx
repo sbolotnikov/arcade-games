@@ -18,6 +18,7 @@ import { OthelloGame } from '@/components/games/OthelloGame';
 import { RenjuGame } from '@/components/games/RenjuGame';
 import Game1942 from '@/components/games/Game1942';
 import { BejeweledGame } from '@/components/games/BejeweledGame';
+import { DotsGame } from '@/components/games/DotsGame';
 
 
 const App: React.FC = () => {
@@ -168,7 +169,14 @@ const App: React.FC = () => {
                             playerName={playerName || 'Player'}
                             controlType={controlType || 'keyboard'}
                             onBack={handleBackToGames}
-                        />;                                                
+                        />;
+            case 'dots':
+                return <DotsGame
+                            playerName={playerName || 'Player'}
+                            controlType={controlType || 'keyboard'}
+                            onBack={handleBackToGames}
+                        />;                        
+
             default:
                 // Fallback to game selection if state is invalid
                 return <GameSelection onSelect={handleGameSelect} onBack={handleBackToControls} />;

@@ -1,10 +1,8 @@
-'use client'
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
     Grid3X3, 
     Zap as SnakeIconLucide, 
-    Rocket, 
     Pickaxe, 
     Maximize, 
     Ghost, 
@@ -28,6 +26,7 @@ import { GAME_DESCRIPTIONS, GameInfo } from '../data/gameDescriptions';
 import { SvgAssetManager } from './SvgAssetManager';
 import { GamePoster, POSTER_METADATA } from './GamePoster';
 import { SVG_POOL } from '../data/svgPool';
+import { DoodlerGraphic } from './games/doodle/DoodleSvgs';
 
 interface GameSelectionProps {
     onSelect: (game: string) => void;
@@ -58,11 +57,13 @@ const SnakeIcon: React.FC = () => (
 
 const DoodleJumpIcon: React.FC = () => (
     <motion.div 
-        className="relative flex items-center justify-center"
-        whileHover={{ y: [0, -10, 0], transition: { repeat: Infinity, duration: 0.6 } }}
+        className="relative flex items-center justify-center w-10 h-10 md:w-14 md:h-14"
+        whileHover={{ y: [0, -8, 0], scale: 1.12, transition: { repeat: Infinity, duration: 0.5 } }}
     >
-        <Rocket className="w-10 h-10 md:w-14 md:h-14 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
-        <div className="absolute inset-0 bg-yellow-400/10 blur-xl rounded-full"></div>
+        <div className="w-9 h-9 md:w-12 md:h-12 relative flex items-center justify-center filter drop-shadow-[0_0_8px_rgba(163,230,53,0.75)]">
+            <DoodlerGraphic />
+        </div>
+        <div className="absolute inset-0 bg-lime-400/15 blur-xl rounded-full pointer-events-none"></div>
     </motion.div>
 );
 
@@ -200,25 +201,65 @@ const Game1942Icon: React.FC = () => (
         className="relative flex items-center justify-center w-12 h-12 md:w-16 md:h-16"
         whileHover={{ y: [0, -6, 0], scale: 1.15, transition: { repeat: Infinity, duration: 0.6 } }}
     >
-        <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center filter drop-shadow-[0_0_12px_rgba(234,179,8,0.85)]">
+        <div className="w-11 h-11 md:w-15 md:h-15 flex items-center justify-center filter drop-shadow-[0_0_14px_rgba(234,179,8,0.9)]">
             <svg viewBox="0 0 64 64" className="w-full h-full">
-                {/* Twin booms */}
-                <rect x="18" y="16" width="6" height="34" rx="2" fill="#475569" />
-                <rect x="40" y="16" width="6" height="34" rx="2" fill="#475569" />
-                {/* Tail */}
-                <rect x="16" y="44" width="32" height="4" rx="1" fill="#334155" />
-                {/* Wings */}
-                <polygon points="32,24 60,32 4,32" fill="#64748b" />
-                {/* Gondola */}
-                <rect x="28" y="18" width="8" height="24" rx="3" fill="#334155" />
-                {/* Canopy */}
-                <ellipse cx="32" cy="27" rx="2.5" ry="5" fill="#38bdf8" />
-                {/* Propellers */}
-                <ellipse cx="21" cy="15" rx="7" ry="2" fill="#facc15" opacity="0.9" />
-                <ellipse cx="43" cy="15" rx="7" ry="2" fill="#facc15" opacity="0.9" />
-                {/* Gun tracer sparks */}
-                <line x1="21" y1="12" x2="21" y2="4" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
-                <line x1="43" y1="12" x2="43" y2="4" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
+                <defs>
+                    <linearGradient id="p38-wing-g" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#94a3b8" />
+                        <stop offset="40%" stopColor="#64748b" />
+                        <stop offset="100%" stopColor="#334155" />
+                    </linearGradient>
+                    <linearGradient id="p38-boom-g" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#334155" />
+                        <stop offset="50%" stopColor="#64748b" />
+                        <stop offset="100%" stopColor="#475569" />
+                    </linearGradient>
+                    <linearGradient id="p38-canopy-g" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#e0f2fe" />
+                        <stop offset="40%" stopColor="#38bdf8" />
+                        <stop offset="100%" stopColor="#0284c7" />
+                    </linearGradient>
+                </defs>
+
+                {/* Gun tracer fire sparks */}
+                <line x1="19" y1="8" x2="19" y2="0" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
+                <line x1="45" y1="8" x2="45" y2="0" stroke="#fef08a" strokeWidth="2" strokeDasharray="3,2" />
+                <line x1="32" y1="12" x2="32" y2="3" stroke="#38bdf8" strokeWidth="2" strokeDasharray="3,2" />
+
+                {/* Horizontal Tail Stabilizer */}
+                <rect x="15" y="47" width="34" height="4.5" rx="1.5" fill="#334155" />
+
+                {/* Twin Booms */}
+                <rect x="16" y="16" width="6" height="35" rx="2" fill="url(#p38-boom-g)" />
+                <rect x="42" y="16" width="6" height="35" rx="2" fill="url(#p38-boom-g)" />
+                {/* Yellow rudder tips */}
+                <rect x="16" y="48" width="6" height="3" fill="#eab308" />
+                <rect x="42" y="48" width="6" height="3" fill="#eab308" />
+
+                {/* Main Wingspan */}
+                <polygon points="32,22 62,32 58,36 6,36 2,32" fill="url(#p38-wing-g)" />
+
+                {/* USAAF Roundel on Left Wing */}
+                <circle cx="12" cy="34" r="3" fill="#1e3a8a" />
+                <rect x="8" y="33" width="8" height="2" fill="#ffffff" />
+                <circle cx="12" cy="34" r="1.5" fill="#ffffff" />
+
+                {/* Center Nacelle Gondola */}
+                <polygon points="32,10 36.5,18 36.5,38 32,44 27.5,38 27.5,18" fill="#334155" />
+                {/* Nose machine guns */}
+                <rect x="29.5" y="8" width="1.5" height="4" fill="#0f172a" />
+                <rect x="33" y="8" width="1.5" height="4" fill="#0f172a" />
+                <rect x="31.2" y="7" width="1.6" height="4.5" fill="#0f172a" />
+
+                {/* Teardrop Glass Canopy */}
+                <ellipse cx="32" cy="25" rx="3" ry="6.5" fill="url(#p38-canopy-g)" />
+                <circle cx="32" cy="24" r="1.8" fill="#0f172a" />
+
+                {/* Spinning Propeller Blur Discs with Yellow safety tips */}
+                <ellipse cx="19" cy="14" rx="8" ry="2.5" fill="#facc15" opacity="0.95" />
+                <ellipse cx="45" cy="14" rx="8" ry="2.5" fill="#facc15" opacity="0.95" />
+                <circle cx="19" cy="14" r="2.2" fill="#ffffff" />
+                <circle cx="45" cy="14" r="2.2" fill="#ffffff" />
             </svg>
         </div>
         <div className="absolute inset-0 bg-amber-500/15 blur-xl rounded-full"></div>
@@ -256,7 +297,42 @@ const BejeweledIcon: React.FC = () => (
     </motion.div>
 );
 
+const DotsIcon: React.FC = () => (
+    <motion.div 
+        className="relative flex items-center justify-center w-12 h-12 md:w-16 md:h-16"
+        whileHover={{ scale: 1.15, rotate: 5 }}
+    >
+        <div className="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center rounded-xl bg-[#fcfbf7] border border-blue-200 shadow-md p-1">
+            <svg viewBox="0 0 48 48" className="w-full h-full">
+                {/* Grid */}
+                <line x1="12" y1="4" x2="12" y2="44" stroke="#bfdbfe" strokeWidth="0.8" />
+                <line x1="24" y1="4" x2="24" y2="44" stroke="#bfdbfe" strokeWidth="0.8" />
+                <line x1="36" y1="4" x2="36" y2="44" stroke="#bfdbfe" strokeWidth="0.8" />
+                <line x1="4" y1="12" x2="44" y2="12" stroke="#bfdbfe" strokeWidth="0.8" />
+                <line x1="4" y1="24" x2="44" y2="24" stroke="#bfdbfe" strokeWidth="0.8" />
+                <line x1="4" y1="36" x2="44" y2="36" stroke="#bfdbfe" strokeWidth="0.8" />
+                {/* Red margin */}
+                <line x1="8" y1="4" x2="8" y2="44" stroke="#f87171" strokeWidth="1.2" />
+
+                {/* Blue surrounding polygon */}
+                <polygon points="24,12 36,24 24,36 12,24" fill="rgba(37, 99, 235, 0.25)" stroke="#2563eb" strokeWidth="1.8" />
+                {/* Blue Dots */}
+                <circle cx="24" cy="12" r="2.8" fill="#1d4ed8" />
+                <circle cx="36" cy="24" r="2.8" fill="#1d4ed8" />
+                <circle cx="24" cy="36" r="2.8" fill="#1d4ed8" />
+                <circle cx="12" cy="24" r="2.8" fill="#1d4ed8" />
+                {/* Captured Red Dot in center */}
+                <circle cx="24" cy="24" r="2.8" fill="#dc2626" />
+                <line x1="22" y1="22" x2="26" y2="26" stroke="#ffffff" strokeWidth="0.8" />
+                <line x1="26" y1="22" x2="22" y2="26" stroke="#ffffff" strokeWidth="0.8" />
+            </svg>
+        </div>
+        <div className="absolute inset-0 bg-blue-500/15 blur-xl rounded-full"></div>
+    </motion.div>
+);
+
 const GAME_ICONS: Record<string, React.FC> = {
+    dots: DotsIcon,
     bejeweled: BejeweledIcon,
     '1942': Game1942Icon,
     game1942: Game1942Icon,
@@ -282,6 +358,7 @@ interface GameMeta {
 }
 
 const ALL_GAMES: GameMeta[] = [
+    { id: 'dots', category: 'puzzle', badgeEmoji: '🔵' },
     { id: 'bejeweled', category: 'puzzle', badgeEmoji: '💎' },
     { id: '1942', category: 'action', badgeEmoji: '✈️' },
     { id: 'supermario', category: 'action', badgeEmoji: '🍄' },
@@ -290,7 +367,7 @@ const ALL_GAMES: GameMeta[] = [
     { id: 'tetris', category: 'puzzle', badgeEmoji: '🟦' },
     { id: 'columns', category: 'puzzle', badgeEmoji: '🔷' },
     { id: 'snake', category: 'arcade', badgeEmoji: '🐍' },
-    { id: 'doodlejump', category: 'action', badgeEmoji: '🚀' },
+    { id: 'doodlejump', category: 'action', badgeEmoji: '🟢' },
     { id: 'digger', category: 'action', badgeEmoji: '⛏️' },
     { id: 'xonix', category: 'puzzle', badgeEmoji: '📐' },
     { id: 'spaceinvaders', category: 'action', badgeEmoji: '👾' },
@@ -619,7 +696,7 @@ export const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }
                             <div className="min-w-0">
                                 <div className="flex items-center gap-2 flex-wrap">
                                     <h2 className="text-base sm:text-xl font-bold font-arcade text-cyan-400 truncate">
-                                        {activeGuide.title.toUpperCase()}
+                                        {(activeGuide.title || '').toUpperCase()}
                                     </h2>
                                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/40 uppercase">
                                         {activeGuide.genre}
