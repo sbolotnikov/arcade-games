@@ -430,23 +430,23 @@ export const GAME_DESCRIPTIONS: Record<string, GameInfo> = {
     },
     dots: {
         id: 'dots',
-        title: 'Точки (Dots)',
+        title: 'Dots',
         genre: 'Turn-Based Strategy & Encirclement',
-        shortDescription: 'Легендарная тактическая игра в школьной тетради! Окружайте и берите в плен точки противника непрерывными замкнутыми контурами («домиками»).',
-        gameplay: 'Игроки по очереди ставят по одной точке своего цвета на свободные пересечения тетрадной сетки. Точки одного цвета соединяются по вертикали, горизонтали и диагонали на расстояние в одну клетку. При замыкании непрерывного кольца вокруг точек противника образуется база («домик») с заливкой территории. Все вражеские точки внутри признаются пленными и приносят по +1 очку. Пустые домики без вражеских точек строить запрещено! Если соперник окружит вашу базу своим кольцом, происходит переокружение — он забирает ваши точки периметра, а ваши пленники внутри освобождаются.',
+        shortDescription: 'The classic graph-paper strategy game! Surround and capture enemy dots with continuous closed loops (bases).',
+        gameplay: 'Players take turns placing one dot of their color on an empty grid intersection. Dots of the same color connect vertically, horizontally, or diagonally across one grid space. Closing a continuous loop around enemy dots creates a base with shaded territory. Each captured enemy dot inside earns +1 point. Empty bases without enemy dots are not allowed! If your opponent surrounds your base with another loop, your boundary dots are captured and the enemy dots you previously captured inside are freed.',
         features: [
-            'Классический антураж школьной тетради: аутентичная тетрадная клетка, красные поля и звук шариковой ручки',
-            'Точный геометрический алгоритм окружения с поддержкой переокружения (Re-encirclement)',
-            'Тактический искусственный интеллект: 3 уровня сложности (Новичок, Опытный, Гроссмейстер)',
-            'Скрещенный старт (4 точки в центре) для острой динамичной борьбы с первого хода',
-            'Режимы игры: против умного ИИ или вдвоем на одном экране (1v1 Hotseat)',
-            'Подсказки лучших ходов, отмена ходов (Ctrl+Z) и переключение тем (Тетрадь / Чертёж)'
+            'Classic school notebook styling: graph paper, red margins, and ballpoint pen sounds',
+            'Precise geometric capture detection with support for re-encirclement',
+            'Tactical AI with three difficulty levels: Beginner, Intermediate, and Grandmaster',
+            'Cross Start with four dots in the center for tactical action from the first move',
+            'Play against AI or challenge a friend on the same screen (1v1 hotseat)',
+            'Move hints, undo (Ctrl+Z), and switchable themes (Notebook / Blueprint)'
         ],
         controls: {
-            keyboard: 'Клик мышью по перекрестку для хода. Пробел — пас. Ctrl+Z — отмена хода. H — подсказка. P или ESC — пауза.',
-            touch: 'Касание любого перекрестка линий для постановки точки. Кнопки «Пас», «Подсказка» и «Отмена» на панели.'
+            keyboard: 'Click a grid intersection to place a dot. Space to pass. Ctrl+Z to undo. H for a hint. P or Esc to pause.',
+            touch: 'Tap a grid intersection to place a dot. Use the Pass, Hint, and Undo buttons on the toolbar.'
         },
-        tips: 'Стройте непрерывные диагональные барьеры, чтобы рассечь поле противника. Внимательно следите за тремя точками соперника вокруг вашей точки — ставьте четвертую точку сами, чтобы разрушить кольцо окружения!'
+        tips: 'Build continuous diagonal barriers to divide enemy territory. Watch for three enemy dots surrounding one of yours, and occupy the fourth spot yourself to prevent the loop from closing!'
     }
 };
 

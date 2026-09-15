@@ -15,7 +15,7 @@ import tapperPosterImg from '../public/posters/tapper.jpg';
 import game1942PosterImg from '../public/posters/game1942.jpg';
 import bejeweledPosterImg from '../public/posters/bejeweled.jpg';
 import tetrisPosterImg from '../public/posters/tetris.jpg';
-import pacmanPosterImg from '../public/posters/pacman.jpg';
+import dotsPosterImg from '../public/posters/dots.png';
 
 interface GamePosterProps {
     gameId: string;
@@ -333,18 +333,18 @@ export const GamePoster: React.FC<GamePosterProps> = ({ gameId, size = 'md', int
                     />
                 );
 
-            case 'pacman':
-                return (
-                    <img 
-                        src={pacmanPosterImg.src} 
-                        alt="Pacman Cinematic Game Poster" 
-                        className="w-full h-full object-cover object-center select-none" 
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src = '/posters/pacman.jpg';
-                        }}
-                    />
-                );
+            // case 'pacman':
+            //     return (
+            //         <img 
+            //             src={pacmanPosterImg.src} 
+            //             alt="Pacman Cinematic Game Poster" 
+            //             className="w-full h-full object-cover object-center select-none" 
+            //             referrerPolicy="no-referrer"
+            //             onError={(e) => {
+            //                 (e.currentTarget as HTMLImageElement).src = '/posters/pacman.jpg';
+            //             }}
+            //         />
+            //     );
 
             case 'tapper':
                 return (
@@ -411,7 +411,18 @@ export const GamePoster: React.FC<GamePosterProps> = ({ gameId, size = 'md', int
                         }}
                     />
                 );
-
+case 'dots':
+                return (
+                    <img 
+                        src={dotsPosterImg.src} 
+                        alt="Dots Cinematic Game Poster" 
+                        className="w-full h-full object-cover object-center select-none" 
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = '/posters/dots.png';
+                        }}
+                    />
+                );
             default:
                 return (
                     <div className="w-full h-full bg-slate-900 flex items-center justify-center text-cyan-400 font-arcade text-lg">
@@ -438,7 +449,8 @@ export const GamePoster: React.FC<GamePosterProps> = ({ gameId, size = 'md', int
         'tapper',
         '1942',
         'game1942',
-        'pacman'
+        'pacman',
+        'dots'
     ].includes(gameId);
 
     return (

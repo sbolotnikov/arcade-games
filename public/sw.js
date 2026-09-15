@@ -1,14 +1,16 @@
-const CACHE_VERSION = 'arcade-v1';
+const CACHE_VERSION = 'arcade-v3';
 const APP_CACHE = `${CACHE_VERSION}-app`;
 
 const CORE_ASSETS = [
   '/',
   '/site.webmanifest',
-  '/favicon-16x16.png',
-  '/favicon-32x32.png',
-  '/apple-touch-icon.png',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
+  '/favicon-16x16.png?v=3',
+  '/favicon-32x32.png?v=3',
+  '/apple-touch-icon.png?v=3',
+  '/icon-192x192.png?v=3',
+  '/icon-512x512.png?v=3',
+  '/icon-maskable-192x192.png?v=3',
+  '/icon-maskable-512x512.png?v=3',
   '/fonts/press_start_2p.woff2',
   '/tetris_music.mp3',
   '/snake_music.mp3',

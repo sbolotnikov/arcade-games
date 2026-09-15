@@ -27,12 +27,12 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                    Правила игры «Точки»
+                                    Game Rules «Dots»
                                     <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-normal">
-                                        Школьная классика
+                                        Highschool Classics
                                     </span>
                                 </h3>
-                                <p className="text-xs text-slate-400">Тактическая дуэль на тетрадном листе в клетку</p>
+                                <p className="text-xs text-slate-400">A tactical duel on graph paper</p>
                             </div>
                         </div>
                         <button
@@ -51,11 +51,11 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                                 <Target className="w-5 h-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-white text-base mb-1">1. Цель и базовые ходы</h4>
+                                <h4 className="font-semibold text-white text-base mb-1">1. Objective and Basic Moves</h4>
                                 <p className="text-slate-300">
-                                    Игроки по очереди ставят по одной точке своего цвета (Синие или Красные) на свободные
-                                    пересечения сетки. Точки одного цвета связываются между собой на расстоянии в одну клетку
-                                    по горизонтали, вертикали или диагонали.
+                                    Players take turns placing one dot of their color (Blue or Red) on an empty
+                                    grid intersection. Dots of the same color connect when they are one grid space apart
+                                    horizontally, vertically, or diagonally.
                                 </p>
                             </div>
                         </div>
@@ -66,13 +66,13 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                                 <ShieldCheck className="w-5 h-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-white text-base mb-1">2. Окружение и взятие в плен («Домик»)</h4>
+                                <h4 className="font-semibold text-white text-base mb-1">2. Surrounding and Capturing (Bases)</h4>
                                 <p className="text-slate-300">
-                                    Если непрерывная цепочка ваших точек замыкается вокруг одной или нескольких вражеских точек,
-                                    образуется база («домик»). Вражеские точки внутри считаются пленными и приносят по <strong className="text-amber-300">+1 очку</strong> за каждую.
+                                    When a continuous chain of your dots forms a closed loop around one or more enemy dots,
+                                    it creates a base. Enemy dots inside are captured, earning <strong className="text-amber-300">+1 point</strong> each.
                                 </p>
                                 <div className="mt-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs">
-                                    ⚠️ <strong>Запрет пустых домиков:</strong> Замыкать контур без хотя бы одной вражеской точки внутри строго запрещено спортивными правилами.
+                                    ⚠️ <strong>No empty bases:</strong> Competitive rules strictly prohibit closing a loop unless it contains at least one enemy dot.
                                 </div>
                             </div>
                         </div>
@@ -83,9 +83,9 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                                 <Zap className="w-5 h-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-white text-base mb-1">3. Переокружение (Re-encirclement)</h4>
+                                <h4 className="font-semibold text-white text-base mb-1">3. Re-encirclement</h4>
                                 <p className="text-slate-300">
-                                    Если соперник окружит вашу базу своей внешней замкнутой цепью, ваши точки периметра становятся его пленниками, а ранее захваченные вами точки врага внутри освобождаются!
+                                    If your opponent surrounds your base with an outer closed loop, your boundary dots are captured, and any enemy dots you previously captured inside are freed!
                                 </p>
                             </div>
                         </div>
@@ -96,9 +96,9 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                                 <HelpCircle className="w-5 h-5" />
                             </div>
                             <div>
-                                <h4 className="font-semibold text-white text-base mb-1">4. Скрещенный старт и окончание игры</h4>
+                                <h4 className="font-semibold text-white text-base mb-1">4. Cross Start and Ending the Game</h4>
                                 <p className="text-slate-300">
-                                    По умолчанию включен <strong>Скрещенный старт</strong> (в центре сразу стоят 4 точки крест-накрест). Игра завершается по достижению выбранного счёта (например, 10 или 15 очков) либо когда оба игрока подряд нажимают «Пас».
+                                    <strong>Cross Start</strong> is enabled by default (four dots are already placed in a cross pattern at the center). The game ends when a player reaches the selected score (for example, 10 or 15 points), or when both players choose Pass consecutively.
                                 </p>
                             </div>
                         </div>
@@ -110,7 +110,7 @@ export const DotsRulesModal: React.FC<DotsRulesModalProps> = ({ isOpen, onClose 
                             onClick={onClose}
                             className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl shadow-lg transition-colors"
                         >
-                            Понятно, к игре!
+                            Got it, let's play!
                         </button>
                     </div>
                 </motion.div>

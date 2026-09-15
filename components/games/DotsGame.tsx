@@ -147,7 +147,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors text-xs font-medium"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        <span>Назад</span>
+                        <span>Back</span>
                     </button>
 
                     <div className="flex items-center gap-2">
@@ -155,8 +155,8 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             <span className="text-sm font-bold">●</span>
                         </div>
                         <div>
-                            <h1 className="text-sm font-bold text-white leading-tight">Точки (Dots)</h1>
-                            <span className="text-[10px] text-slate-400">Школьная тактическая стратегия</span>
+                            <h1 className="text-sm font-bold text-white leading-tight">Dots</h1>
+                            <span className="text-[10px] text-slate-400">A classic schoolyard strategy game</span>
                         </div>
                     </div>
                 </div>
@@ -170,7 +170,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             : 'bg-slate-800/60 border-slate-700'
                     }`}>
                         <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
-                        <span className="text-xs font-semibold text-blue-200">Синие</span>
+                        <span className="text-xs font-semibold text-blue-200">Blue</span>
                         <span className="text-base font-extrabold text-white px-1.5 py-0.5 rounded bg-blue-900/50">
                             {scores.blue}
                         </span>
@@ -188,7 +188,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             {scores.red}
                         </span>
                         <span className="text-xs font-semibold text-rose-200">
-                            {gameMode === 'pve' ? 'ИИ' : 'Красные'}
+                            {gameMode === 'pve' ? 'AI' : 'Red'}
                         </span>
                         <div className="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]" />
                     </div>
@@ -199,35 +199,35 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                     <button
                         onClick={() => setShowRules(true)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title="Правила игры"
+                        title="Game rules"
                     >
                         <BookOpen className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setShowSettings(true)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title="Настройки поля и сложности"
+                        title="Board and difficulty settings"
                     >
                         <Settings className="w-4 h-4" />
                     </button>
                     <button
                         onClick={toggleSound}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title={soundEnabled ? 'Выключить звук' : 'Включить звук'}
+                        title={soundEnabled ? 'Mute sound' : 'Enable sound'}
                     >
                         {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-slate-400" />}
                     </button>
                     <button
                         onClick={() => setShowLeaderboard(true)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title="Таблица рекордов"
+                        title="Leaderboard"
                     >
                         <Trophy className="w-4 h-4 text-amber-400" />
                     </button>
                     <button
                         onClick={() => setIsPaused(true)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title="Пауза"
+                        title="Pause"
                     >
                         <Pause className="w-4 h-4" />
                     </button>
@@ -313,7 +313,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             />
                         )}
 
-                        {/* Encirclements (Bases / "Домики") */}
+                        {/* Encirclements (Bases / "Bases") */}
                         {encirclements.map(enc => {
                             if (enc.border.length < 3) return null;
                             const pointsStr = enc.border
@@ -496,16 +496,16 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                         }`} />
                     </span>
                     <span className="text-slate-200 font-medium">
-                        {isAiThinking ? 'ИИ обдумывает ход...' : statusMessage}
+                        {isAiThinking ? 'AI is thinking...' : statusMessage}
                     </span>
                     <button
                         onClick={() => setShowSettings(true)}
                         className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 ml-2 transition-colors cursor-pointer"
-                        title="Изменить настройки поля или сложности"
+                        title="Change board or difficulty settings"
                     >
                         <span>{gridSize}×{gridSize}</span>
                         <span>•</span>
-                        <span>{gameMode === 'pve' ? (aiDifficulty === 'easy' ? 'Легкий ИИ' : aiDifficulty === 'medium' ? 'Средний ИИ' : 'Сложный ИИ') : '2 Игрока'}</span>
+                        <span>{gameMode === 'pve' ? (aiDifficulty === 'easy' ? 'Easy AI' : aiDifficulty === 'medium' ? 'Medium AI' : 'Hard AI') : '2 Players'}</span>
                         <Settings className="w-3 h-3 ml-0.5 opacity-60" />
                     </button>
                 </div>
@@ -516,10 +516,10 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                         onClick={undoMove}
                         disabled={isAiThinking || isGameOver}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 transition-colors font-medium text-xs"
-                        title="Отменить ход (Ctrl+Z)"
+                        title="Undo move (Ctrl+Z)"
                     >
                         <Undo2 className="w-3.5 h-3.5" />
-                        <span>Отмена</span>
+                        <span>Undo</span>
                     </button>
 
                     <button
@@ -532,28 +532,28 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                         }}
                         disabled={isAiThinking || isGameOver}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 disabled:opacity-40 transition-colors font-medium text-xs"
-                        title="Подсказка (H)"
+                        title="Hint (H)"
                     >
                         <Lightbulb className="w-3.5 h-3.5" />
-                        <span>Подсказка</span>
+                        <span>Hint</span>
                     </button>
 
                     <button
                         onClick={passTurn}
                         disabled={isAiThinking || isGameOver}
                         className="flex items-center gap-1 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 text-slate-200 border border-slate-700 transition-colors font-medium text-xs"
-                        title="Пропустить ход (Пробел)"
+                        title="Pass turn (Space)"
                     >
-                        <span>Пас</span>
+                        <span>Pass</span>
                     </button>
 
                     {/* Theme switcher */}
                     <button
                         onClick={() => setTheme(isNotebook ? 'blueprint' : 'notebook')}
                         className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors text-xs"
-                        title="Сменить тему оформления"
+                        title="Switch theme"
                     >
-                        {isNotebook ? '📐 Чертёж' : '📝 Тетрадь'}
+                        {isNotebook ? '📐 Blueprint' : '📝 Notebook'}
                     </button>
 
                     <button
@@ -561,7 +561,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold transition-colors text-xs shadow-md"
                     >
                         <RotateCcw className="w-3.5 h-3.5" />
-                        <span>Заново</span>
+                        <span>Restart</span>
                     </button>
                 </div>
             </div>
@@ -581,7 +581,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             </div>
 
                             <h2 className="text-2xl font-bold text-white">
-                                {winner === 'blue' ? 'Победа Синих!' : winner === 'red' ? 'Победа Красных!' : 'Боевая ничья!'}
+                                {winner === 'blue' ? 'Blue wins!' : winner === 'red' ? 'Red wins!' : 'A hard-fought draw!'}
                             </h2>
 
                             <p className="text-sm text-slate-300">
@@ -590,11 +590,11 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
 
                             <div className="flex justify-center gap-6 py-2">
                                 <div className="px-4 py-2 rounded-xl bg-blue-950/60 border border-blue-800">
-                                    <span className="text-xs text-blue-300 block">Синие</span>
+                                    <span className="text-xs text-blue-300 block">Blue</span>
                                     <span className="text-xl font-bold text-white">{scores.blue}</span>
                                 </div>
                                 <div className="px-4 py-2 rounded-xl bg-rose-950/60 border border-rose-800">
-                                    <span className="text-xs text-rose-300 block">Красные</span>
+                                    <span className="text-xs text-rose-300 block">Red</span>
                                     <span className="text-xl font-bold text-white">{scores.red}</span>
                                 </div>
                             </div>
@@ -605,13 +605,13 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                     className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-lg transition-colors flex items-center gap-2 text-sm"
                                 >
                                     <RotateCcw className="w-4 h-4" />
-                                    <span>Сыграть снова</span>
+                                    <span>Play again</span>
                                 </button>
                                 <button
                                     onClick={onBack}
                                     className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors text-sm"
                                 >
-                                    В меню
+                                    Main menu
                                 </button>
                             </div>
                         </div>
@@ -631,7 +631,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                 onClick={() => setShowRules(true)}
                                 className="text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-4 cursor-pointer font-medium"
                             >
-                                Посмотреть правила игры «Точки»
+                                View Dots rules
                             </button>
                         </div>
                     }
@@ -664,7 +664,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                     <div className="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">
                                         <Settings className="w-4 h-4" />
                                     </div>
-                                    <h3 className="text-base font-bold text-white">Параметры партии «Точки»</h3>
+                                    <h3 className="text-base font-bold text-white">Dots game settings</h3>
                                 </div>
                                 <button
                                     onClick={() => setShowSettings(false)}
@@ -678,7 +678,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                 {/* Grid Size */}
                                 <div>
                                     <label className="block font-semibold text-slate-300 mb-1.5">
-                                        Размер игрового поля:
+                                        Board size:
                                     </label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {([15, 20, 25] as DotsGridSize[]).map(size => (
@@ -697,7 +697,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                             >
                                                 <div className="text-sm font-bold">{size}×{size}</div>
                                                 <div className="text-[10px] text-slate-400">
-                                                    {size === 15 ? 'Быстрая' : size === 20 ? 'Классика' : 'Большая'}
+                                                    {size === 15 ? 'Quick' : size === 20 ? 'Classic' : 'Large'}
                                                 </div>
                                             </button>
                                         ))}
@@ -708,13 +708,13 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                 {gameMode === 'pve' && (
                                     <div>
                                         <label className="block font-semibold text-slate-300 mb-1.5">
-                                            Уровень мастерства ИИ:
+                                            AI difficulty:
                                         </label>
                                         <div className="grid grid-cols-3 gap-2">
                                             {([
-                                                { id: 'easy', label: 'Легкий', desc: 'Ученик' },
-                                                { id: 'medium', label: 'Средний', desc: 'Одноклассник' },
-                                                { id: 'hard', label: 'Сложный', desc: 'Гроссмейстер' }
+                                                { id: 'easy', label: 'Easy', desc: 'Beginner' },
+                                                { id: 'medium', label: 'Medium', desc: 'Intermediate' },
+                                                { id: 'hard', label: 'Hard', desc: 'Grandmaster' }
                                             ] as { id: DotsAiDifficulty; label: string; desc: string }[]).map(item => (
                                                 <button
                                                     key={item.id}
@@ -740,7 +740,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                 {/* Game Mode */}
                                 <div>
                                     <label className="block font-semibold text-slate-300 mb-1.5">
-                                        Режим игры:
+                                        Game mode:
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
@@ -755,8 +755,8 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                                     : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                             }`}
                                         >
-                                            <div className="text-xs font-bold">Против ИИ</div>
-                                            <div className="text-[10px] text-slate-400">Одиночная дуэль</div>
+                                            <div className="text-xs font-bold">Vs. AI</div>
+                                            <div className="text-[10px] text-slate-400">Single-player duel</div>
                                         </button>
                                         <button
                                             type="button"
@@ -770,8 +770,8 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                                     : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                             }`}
                                         >
-                                            <div className="text-xs font-bold">Вдвоем (PvP)</div>
-                                            <div className="text-[10px] text-slate-400">На одном экране</div>
+                                            <div className="text-xs font-bold">Two players (PvP)</div>
+                                            <div className="text-[10px] text-slate-400">On the same screen</div>
                                         </button>
                                     </div>
                                 </div>
@@ -779,7 +779,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                 {/* Start Setup */}
                                 <div>
                                     <label className="block font-semibold text-slate-300 mb-1.5">
-                                        Начальная расстановка:
+                                        Starting layout:
                                     </label>
                                     <div className="grid grid-cols-2 gap-2">
                                         <button
@@ -794,8 +794,8 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                                     : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                             }`}
                                         >
-                                            <div className="text-xs font-bold">Крест (4 точки)</div>
-                                            <div className="text-[10px] text-slate-400">Школьная классика в центре</div>
+                                            <div className="text-xs font-bold">Cross (4 dots)</div>
+                                            <div className="text-[10px] text-slate-400">Classic opening at the center</div>
                                         </button>
                                         <button
                                             type="button"
@@ -809,8 +809,8 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                                     : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                             }`}
                                         >
-                                            <div className="text-xs font-bold">Чистое поле</div>
-                                            <div className="text-[10px] text-slate-400">Свободный первый ход</div>
+                                            <div className="text-xs font-bold">Empty board</div>
+                                            <div className="text-[10px] text-slate-400">Place the first dot anywhere</div>
                                         </button>
                                     </div>
                                 </div>
@@ -821,7 +821,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                     onClick={() => setShowSettings(false)}
                                     className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors"
                                 >
-                                    Закрыть
+                                    Close
                                 </button>
                             </div>
                         </motion.div>
@@ -844,7 +844,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                             onClick={() => setShowLeaderboard(false)}
                             className="mt-4 px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-colors"
                         >
-                            Закрыть
+                            Close
                         </button>
                     </div>
                 </div>

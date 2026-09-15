@@ -81,12 +81,12 @@ function applyMoveToState(prev: DotsGameState, r: number, c: number): DotsGameSt
     if (newScores[currentTurn] >= targetScore) {
         gameOver = true;
         gameWinner = currentTurn;
-        status = `Победа ${currentTurn === 'blue' ? 'Синих' : 'Красных'}! Захвачено ${newScores[currentTurn]} точек!`;
+        status = `Victory for ${currentTurn === 'blue' ? 'Blue' : 'Red'}! ${newScores[currentTurn]} dots captured!`;
         dotsAudio.playVictory();
     } else {
         status = prev.gameMode === 'pve'
-            ? (nextTurn === prev.playerColor ? 'Ваш ход! Поставьте точку.' : 'ИИ обдумывает ответный ход...')
-            : (nextTurn === 'blue' ? 'Ход Синих' : 'Ход Красных');
+            ? (nextTurn === prev.playerColor ? 'Your turn! Place a dot.' : 'AI is thinking about its next move...')
+            : (nextTurn === 'blue' ? 'Blue to move' : 'Red to move');
     }
 
     const isNextAi = !gameOver && ((prev.gameMode === 'pve' && nextTurn !== prev.playerColor) || prev.gameMode === 'eve');
@@ -122,7 +122,7 @@ function applyPassToState(prev: DotsGameState): DotsGameState {
             ...prev,
             isGameOver: true,
             winner,
-            statusMessage: winner === 'draw' ? 'Ничья по взаимному согласию!' : `Игра окончена! Победитель: ${winner === 'blue' ? 'Синие' : 'Красные'}.`,
+            statusMessage: winner === 'draw' ? 'A draw by mutual agreement!' : `Game over! Winner: ${winner === 'blue' ? 'Blue' : 'Red'}.`,
             consecutivePasses: nextPasses,
             isAiThinking: false
         };
@@ -134,7 +134,7 @@ function applyPassToState(prev: DotsGameState): DotsGameState {
         ...prev,
         turn: nextTurn,
         consecutivePasses: nextPasses,
-        statusMessage: `${prev.turn === 'blue' ? 'Синие' : 'Красные'} спасовали. Ход переходит дальше.`,
+        statusMessage: `${prev.turn === 'blue' ? 'Blue' : 'Red'} passed. The turn moves to the other player.`,
         isAiThinking: isNextAi
     };
 }
@@ -154,7 +154,7 @@ export function useDotsGame() {
             theme: 'notebook',
             isGameOver: false,
             winner: null,
-            statusMessage: 'Ваш ход! Поставьте синюю точку на сетку.',
+            statusMessage: 'Your turn! Place a blue dot on the grid.',
             scores: { blue: 0, red: 0 },
             territoryCounts: { blue: 0, red: 0 },
             encirclements: [],
@@ -200,7 +200,7 @@ export function useDotsGame() {
                 winCondition: win,
                 isGameOver: false,
                 winner: null,
-                statusMessage: mode === 'pve' ? 'Ваш ход! Поставьте точку.' : 'Ход Синих!',
+                statusMessage: mode === 'pve' ? 'Your turn! Place a dot.' : 'Blue to move!',
                 scores: { blue: 0, red: 0 },
                 territoryCounts: { blue: 0, red: 0 },
                 encirclements: [],
@@ -293,7 +293,7 @@ export function useDotsGame() {
                 lastMove: lastM ? { r: lastM.r, c: lastM.c } : null,
                 isGameOver: false,
                 winner: null,
-                statusMessage: 'Ход отменен.',
+                statusMessage: 'Move undone.',
                 isAiThinking: false
             };
         });

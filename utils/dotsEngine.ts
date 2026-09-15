@@ -399,7 +399,7 @@ export function detectEncirclements(
             }
         }
 
-        // Rule of Dots: "Пустые домики строить запрещено"
+        // Rule of Dots: "Empty bases are not allowed"
         if (uncapturedEnemyDots.length === 0) {
             continue;
         }
