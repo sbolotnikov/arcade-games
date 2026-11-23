@@ -332,6 +332,8 @@ const DotsIcon: React.FC = () => (
 );
 
 const GAME_ICONS: Record<string, React.FC> = {
+    chess: () => <span aria-hidden className="text-2xl leading-none text-amber-200">?</span>,
+    checkers: () => <span aria-hidden className="text-2xl leading-none text-teal-300">?</span>,
     dots: DotsIcon,
     bejeweled: BejeweledIcon,
     '1942': Game1942Icon,
@@ -358,6 +360,8 @@ interface GameMeta {
 }
 
 const ALL_GAMES: GameMeta[] = [
+    { id: 'chess', category: 'puzzle', badgeEmoji: '?' },
+    { id: 'checkers', category: 'puzzle', badgeEmoji: '?' },
     { id: 'dots', category: 'puzzle', badgeEmoji: '🔵' },
     { id: 'bejeweled', category: 'puzzle', badgeEmoji: '💎' },
     { id: '1942', category: 'action', badgeEmoji: '✈️' },
@@ -827,7 +831,7 @@ export const GameSelection: React.FC<GameSelectionProps> = ({ onSelect, onBack }
                         <div className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-950/80 border-b border-slate-800">
                             <div className="flex items-center gap-2.5">
                                 <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                                    EST. {activePosterMeta.year}
+                                    {activePosterMeta.year ? `EST. ${activePosterMeta.year}` : activePosterMeta.subtitle}
                                 </span>
                                 <h2 className="text-base sm:text-lg font-black font-arcade text-white tracking-wider">
                                     {activePosterMeta.title}

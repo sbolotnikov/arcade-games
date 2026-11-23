@@ -635,7 +635,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         if (!isTwoPlayer && turn !== playerColor) return;
         if (board[row][col] !== null) return;
 
-        executeMove(row, col, playerColor);
+        executeMove(row, col, turn);
     }, [isGameOver, isAiThinking, isTraining, isPaused, hasStarted, isTwoPlayer, turn, playerColor, board, executeMove]);
 
     // AI Turn Trigger Effect

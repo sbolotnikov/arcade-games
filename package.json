@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "chess.js": "1.4.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.7.0",
     "next": "15.3.8",

@@ -462,7 +462,7 @@ export const useOthelloGame = () => {
 
         const move = currentValidMoves.find(m => m.row === row && m.col === col);
         if (move) {
-            executeMove(move, playerColor);
+            executeMove(move, turn);
         }
     }, [isGameOver, isAiThinking, isTraining, isTwoPlayer, turn, playerColor, currentValidMoves, executeMove]);
 

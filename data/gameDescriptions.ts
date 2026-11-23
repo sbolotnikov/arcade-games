@@ -428,6 +428,32 @@ export const GAME_DESCRIPTIONS: Record<string, GameInfo> = {
             }
         ]
     },
+    chess: {
+        id: 'chess',
+        title: 'Chess',
+        genre: 'Board Strategy',
+        shortDescription: 'Play for checkmate against a friend or the computer.',
+        gameplay: 'White moves first. Select a piece to see its legal moves. Checkmate wins the game.',
+        features: ['Local two-player and computer modes', 'Castling, en passant, and pawn promotion'],
+        controls: {
+            keyboard: 'Click a piece and its destination, or use Tab and Enter.',
+            touch: 'Tap a piece and then a highlighted destination.',
+        },
+        tips: 'Develop your pieces and keep your king safe.',
+    },
+    checkers: {
+        id: 'checkers',
+        title: 'Checkers',
+        genre: 'Board Strategy',
+        shortDescription: 'Play American checkers against a friend or the computer.',
+        gameplay: 'Black moves first. Jumps are mandatory, and the same piece must continue jumping when possible. Reach the far edge to crown a king. You win when the opponent has no legal move.',
+        features: ['Local two-player and computer modes', 'Mandatory captures, multiple jumps, and kings'],
+        controls: {
+            keyboard: 'Click a checker and its destination, or use Tab and Enter.',
+            touch: 'Tap a checker and then a highlighted destination.',
+        },
+        tips: 'Look for moves that set up a chain of captures.',
+    },
     dots: {
         id: 'dots',
         title: 'Dots',

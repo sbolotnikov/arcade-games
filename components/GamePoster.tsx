@@ -27,7 +27,7 @@ interface GamePosterProps {
 export interface PosterMetadata {
     title: string;
     subtitle: string;
-    year: string;
+    year?: string;
     tagline: string;
     primaryColor: string;
     accentColor: string;
@@ -142,6 +142,22 @@ export const POSTER_METADATA: Record<string, PosterMetadata> = {
         primaryColor: '#d97706',
         accentColor: '#f59e0b',
         badgeText: 'ROOT BEER SALOON'
+    },
+    chess: {
+        title: 'CHESS',
+        subtitle: 'BOARD STRATEGY',
+        tagline: 'Play for checkmate',
+        primaryColor: '#0f766e',
+        accentColor: '#99f6e4',
+        badgeText: 'LOCAL OR COMPUTER',
+    },
+    checkers: {
+        title: 'CHECKERS',
+        subtitle: 'AMERICAN CHECKERS',
+        tagline: 'Link your jumps',
+        primaryColor: '#0f766e',
+        accentColor: '#99f6e4',
+        badgeText: 'LOCAL OR COMPUTER',
     },
     othello: {
         title: 'OTHELLO',
@@ -423,6 +439,15 @@ case 'dots':
                         }}
                     />
                 );
+            case 'chess':
+            case 'checkers':
+                return (
+                    <img
+                        src={gameId === 'chess' ? '/posters/chess.webp' : '/posters/checkers.webp'}
+                        alt=""
+                        className="h-full w-full select-none object-cover"
+                    />
+                );
             default:
                 return (
                     <div className="w-full h-full bg-slate-900 flex items-center justify-center text-cyan-400 font-arcade text-lg">
@@ -475,7 +500,7 @@ case 'dots':
             )}
 
             {/* Top Bar: Release Year & Arcade Badge */}
-            {(!isImagePoster || size !== 'lg') && (
+            {meta.year && (!isImagePoster || size !== 'lg') && (
                 <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none">
                     <span className="text-[10px] font-bold tracking-widest font-mono px-2 py-0.5 rounded bg-slate-900/80 text-slate-300 border border-slate-700/80 backdrop-blur-sm">
                         CLASSIC {meta.year}
