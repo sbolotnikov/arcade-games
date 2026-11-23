@@ -163,6 +163,7 @@ const playTone = (type: 'place' | 'flip' | 'pass' | 'win' | 'over') => {
 
 export const useOthelloGame = () => {
     const [board, setBoard] = useState<OthelloBoard>(createInitialBoard);
+    const [isTwoPlayer, setIsTwoPlayer] = useState(false);
     const [turn, setTurn] = useState<OthelloDisc>('B');
     const [playerColor, setPlayerColor] = useState<OthelloDisc>('B');
     const [lastMove, setLastMove] = useState<{ row: number; col: number } | null>(null);
@@ -397,7 +398,9 @@ export const useOthelloGame = () => {
                 const returnMoves = getValidMoves(nextBoard, movingPlayer);
                 if (returnMoves.length > 0) {
                     playTone('pass');
-                    const passText = nextPlayer === playerColor
+                    const passText = isTwoPlayer
+                        ? `${nextPlayer === 'B' ? 'Black' : 'White'} has no legal moves and passes!`
+                        : nextPlayer === playerColor
                         ? 'You have no legal moves and must pass!'
                         : 'AI has no legal moves and passes!';
                     setPassNotice(passText);
@@ -426,7 +429,7 @@ export const useOthelloGame = () => {
                     setGameStatusMessage(resultMsg);
 
                     // Trigger learning reinforcement
-                    applyReinforcementLearning(nextBoard, aiColor, playerColor);
+                    if (!isTwoPlayer) applyReinforcementLearning(nextBoard, aiColor, playerColor);
                 }
             }
 
@@ -446,22 +449,22 @@ export const useOthelloGame = () => {
         }]);
 
         // Track moves learned in brain
-        updateBrain(s => ({
+        if (!isTwoPlayer) updateBrain(s => ({
             ...s,
             totalMovesLearned: s.totalMovesLearned + 1
         }));
-    }, [aiColor, playerColor, applyReinforcementLearning, updateBrain]);
+    }, [aiColor, playerColor, isTwoPlayer, applyReinforcementLearning, updateBrain]);
 
     // Handle Player Click on cell
     const handleCellClick = useCallback((row: number, col: number) => {
         if (isGameOver || isAiThinking || isTraining) return;
-        if (turn !== playerColor) return;
+        if (!isTwoPlayer && turn !== playerColor) return;
 
         const move = currentValidMoves.find(m => m.row === row && m.col === col);
         if (move) {
             executeMove(move, playerColor);
         }
-    }, [isGameOver, isAiThinking, isTraining, turn, playerColor, currentValidMoves, executeMove]);
+    }, [isGameOver, isAiThinking, isTraining, isTwoPlayer, turn, playerColor, currentValidMoves, executeMove]);
 
     // AI Turn Trigger
     useEffect(() => {
@@ -470,7 +473,7 @@ export const useOthelloGame = () => {
             return;
         }
 
-        if (turn === aiColor) {
+        if (!isTwoPlayer && turn === aiColor) {
             setIsAiThinking(true);
             const thinkTimer = setTimeout(() => {
                 const depth = aiDifficulty === 'grandmaster' ? 3 : aiDifficulty === 'adaptive' ? 2 : 1;
@@ -499,7 +502,7 @@ export const useOthelloGame = () => {
         } else {
             setIsAiThinking(false);
         }
-    }, [turn, aiColor, isGameOver, isTraining, board, aiDifficulty, playerColor, findBestAiMove, executeMove]);
+    }, [isTwoPlayer, turn, aiColor, isGameOver, isTraining, board, aiDifficulty, playerColor, findBestAiMove, executeMove]);
 
     // Self-Play AI Simulation for fast learning
     const simulateSelfPlay = useCallback((gamesCount: number = 5) => {
@@ -567,6 +570,8 @@ export const useOthelloGame = () => {
     }, []);
 
     return {
+        isTwoPlayer,
+        setIsTwoPlayer,
         board,
         turn,
         playerColor,

@@ -181,6 +181,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
     const hasStarted = options?.hasStarted ?? true;
 
     const [board, setBoard] = useState<RenjuBoard>(createInitialBoard);
+    const [isTwoPlayer, setIsTwoPlayer] = useState(false);
     const [turn, setTurn] = useState<RenjuStone>('B');
     const [playerColor, setPlayerColor] = useState<RenjuStone>('B');
     const [ruleMode, setRuleMode] = useState<RenjuRuleMode>('freestyle');
@@ -554,12 +555,12 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
             setWinningLine(winResult.line);
             playAudioEffect('win');
 
-            const winnerName = player === playerColor ? 'You Win!' : 'Renju Master AI Wins!';
+            const winnerName = isTwoPlayer ? (player === 'B' ? 'Black Wins!' : 'White Wins!') : player === playerColor ? 'You Win!' : 'Renju Master AI Wins!';
             const colorName = player === 'B' ? 'Black' : 'White';
             setGameStatusMessage(`${winnerName} (${colorName} 5-in-a-Row)`);
 
             // Update Brain Stats on match completion
-            updateBrain(prev => {
+            if (!isTwoPlayer) updateBrain(prev => {
                 const isPlayerWin = player === playerColor;
                 const newAiWins = isPlayerWin ? prev.aiWins : prev.aiWins + 1;
                 const newPlayerWins = isPlayerWin ? prev.playerWins + 1 : prev.playerWins;
@@ -614,7 +615,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         if (newMoveNumber >= BOARD_SIZE * BOARD_SIZE) {
             setIsGameOver(true);
             setGameStatusMessage('Game Over: Full Board Stalemate Draw!');
-            updateBrain(prev => ({
+            if (!isTwoPlayer) updateBrain(prev => ({
                 ...prev,
                 gamesPlayed: prev.gamesPlayed + 1,
                 draws: prev.draws + 1
@@ -626,16 +627,16 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         const nextTurn: RenjuStone = player === 'B' ? 'W' : 'B';
         setTurn(nextTurn);
         return true;
-    }, [board, ruleMode, moveHistory.length, checkRenjuFoul, checkWinAt, playerColor, updateBrain]);
+    }, [board, ruleMode, moveHistory.length, checkRenjuFoul, checkWinAt, playerColor, isTwoPlayer, updateBrain]);
 
     // Handle Player Click on intersection
     const handleIntersectionClick = useCallback((row: number, col: number) => {
         if (isGameOver || isAiThinking || isTraining || isPaused || !hasStarted) return;
-        if (turn !== playerColor) return;
+        if (!isTwoPlayer && turn !== playerColor) return;
         if (board[row][col] !== null) return;
 
         executeMove(row, col, playerColor);
-    }, [isGameOver, isAiThinking, isTraining, isPaused, hasStarted, turn, playerColor, board, executeMove]);
+    }, [isGameOver, isAiThinking, isTraining, isPaused, hasStarted, isTwoPlayer, turn, playerColor, board, executeMove]);
 
     // AI Turn Trigger Effect
     useEffect(() => {
@@ -644,7 +645,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
             return;
         }
 
-        if (turn === aiColor) {
+        if (!isTwoPlayer && turn === aiColor) {
             setIsAiThinking(true);
             const thinkTimer = setTimeout(() => {
                 const best = findBestAiMove(board, aiColor, aiDifficulty, brainStats, ruleMode);
@@ -661,7 +662,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         } else {
             setIsAiThinking(false);
         }
-    }, [turn, aiColor, isGameOver, isTraining, isPaused, hasStarted, board, aiDifficulty, brainStats, ruleMode, findBestAiMove, executeMove]);
+    }, [isTwoPlayer, turn, aiColor, isGameOver, isTraining, isPaused, hasStarted, board, aiDifficulty, brainStats, ruleMode, findBestAiMove, executeMove]);
 
     // Undo Last Move (undoes player move + AI move if applicable)
     const undoMove = useCallback(() => {
@@ -671,7 +672,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         // If game is in progress and turn is player, pop last 2 moves (AI + Player)
         // If game over or player just moved, pop last 1 or 2
         let popCount = 1;
-        if (!isGameOver && turn === playerColor && moveHistory.length >= 2) {
+        if (!isTwoPlayer && !isGameOver && turn === playerColor && moveHistory.length >= 2) {
             popCount = 2;
         }
 
@@ -697,7 +698,7 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
         }
 
         playAudioEffect('undo');
-    }, [isAiThinking, isTraining, moveHistory, isGameOver, turn, playerColor]);
+    }, [isAiThinking, isTraining, isPaused, hasStarted, moveHistory, isGameOver, turn, playerColor, isTwoPlayer]);
 
     // Restart game
     const restartGame = useCallback(() => {
@@ -785,6 +786,8 @@ export const useRenjuGame = (options?: { isPaused?: boolean; hasStarted?: boolea
     }, []);
 
     return {
+        isTwoPlayer,
+        setIsTwoPlayer,
         board,
         turn,
         playerColor,

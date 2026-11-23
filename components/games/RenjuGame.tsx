@@ -44,6 +44,8 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
     const [showCoordinates, setShowCoordinates] = useState(true);
 
     const {
+        isTwoPlayer,
+        setIsTwoPlayer,
         board,
         turn,
         playerColor,
@@ -75,7 +77,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
 
     // High score calculation on game over
     useEffect(() => {
-        if (isGameOver && hasStarted && playerName && winningLine) {
+        if (!isTwoPlayer && isGameOver && hasStarted && playerName && winningLine) {
             const isPlayerWin = gameStatusMessage?.includes('You Win');
             if (isPlayerWin) {
                 // Score = base 5000 + bonus for fewer moves used + difficulty multiplier
@@ -85,7 +87,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                 saveScore(playerName, totalScore);
             }
         }
-    }, [isGameOver, hasStarted, playerName, winningLine, gameStatusMessage, aiDifficulty, moveHistory.length, saveScore]);
+    }, [isTwoPlayer, isGameOver, hasStarted, playerName, winningLine, gameStatusMessage, aiDifficulty, moveHistory.length, saveScore]);
 
     // Keyboard shortcuts (Z = Undo, P/ESC = Pause)
     useEffect(() => {
@@ -220,7 +222,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                         <div>
                             <div className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-slate-200">
                                 <span>Black</span>
-                                {playerColor === 'B' ? (
+                                {!isTwoPlayer && (playerColor === 'B' ? (
                                     <span className="text-[9px] bg-sky-500/20 text-sky-300 px-1 rounded border border-sky-500/30">
                                         You
                                     </span>
@@ -228,7 +230,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                                     <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1 rounded border border-purple-500/30">
                                         AI
                                     </span>
-                                )}
+                                ))}
                             </div>
                             <div className="text-[9px] sm:text-[10px] font-mono text-slate-400 leading-none">
                                 {blackStones} stones
@@ -253,7 +255,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                         <div>
                             <div className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-slate-200">
                                 <span>White</span>
-                                {playerColor === 'W' ? (
+                                {!isTwoPlayer && (playerColor === 'W' ? (
                                     <span className="text-[9px] bg-sky-500/20 text-sky-300 px-1 rounded border border-sky-500/30">
                                         You
                                     </span>
@@ -261,7 +263,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                                     <span className="text-[9px] bg-purple-500/20 text-purple-300 px-1 rounded border border-purple-500/30">
                                         AI
                                     </span>
-                                )}
+                                ))}
                             </div>
                             <div className="text-[9px] sm:text-[10px] font-mono text-slate-400 leading-none">
                                 {whiteStones} stones
@@ -276,10 +278,10 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                                 <Brain className="w-3 h-3 animate-spin" />
                                 <span>Thinking...</span>
                             </span>
-                        ) : isPlayerTurn && !isGameOver ? (
+                        ) : (isTwoPlayer || isPlayerTurn) && !isGameOver ? (
                             <span className="text-[10px] sm:text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-semibold border border-emerald-500/40 animate-pulse flex items-center gap-1">
                                 <Sparkles className="w-3 h-3" />
-                                <span>Your Turn</span>
+                                <span>{isTwoPlayer ? (turn === 'B' ? 'Black to move' : 'White to move') : 'Your Turn'}</span>
                             </span>
                         ) : !isGameOver ? (
                             <span className="text-[10px] sm:text-xs bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-semibold border border-amber-500/40">
@@ -319,8 +321,21 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                         </button>
                     </div>
 
-                    {/* AI Difficulty Selector */}
                     <select
+                        aria-label="Game mode"
+                        value={isTwoPlayer ? 'local' : 'computer'}
+                        onChange={event => {
+                            setIsTwoPlayer(event.target.value === 'local');
+                            restartGame();
+                        }}
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+                    >
+                        <option value="computer">Vs. Computer</option>
+                        <option value="local">Two Players (Local)</option>
+                    </select>
+
+                    {/* AI Difficulty Selector */}
+                    {!isTwoPlayer && <select
                         value={aiDifficulty}
                         onChange={(e) => setAiDifficulty(e.target.value as RenjuAiDifficulty)}
                         className="bg-slate-950 border border-slate-800 text-slate-300 text-[11px] sm:text-xs font-semibold rounded-lg px-1.5 sm:px-2 py-1 focus:outline-none focus:border-amber-500 cursor-pointer"
@@ -329,10 +344,10 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                         <option value="adaptive">Adaptive AI</option>
                         <option value="grandmaster">Grandmaster</option>
                         <option value="casual">Casual</option>
-                    </select>
+                    </select>}
 
                     {/* Swap Color Button (Only before match begins) */}
-                    {moveHistory.length === 0 && (
+                    {!isTwoPlayer && moveHistory.length === 0 && (
                         <button
                             onClick={() => setPlayerColor(playerColor === 'B' ? 'W' : 'B')}
                             className="px-1.5 sm:px-2 py-1 bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 rounded-lg text-[11px] sm:text-xs font-semibold transition-colors cursor-pointer"
@@ -540,7 +555,7 @@ export const RenjuGame: React.FC<RenjuGameProps> = ({
                                     const isWinningStone = winningSet.has(`${r}-${c}`);
                                     const isLast = lastMove?.row === r && lastMove?.col === c;
                                     const isHovered = hoveredCell?.row === r && hoveredCell?.col === c;
-                                    const canPlace = cell === null && isPlayerTurn && !isGameOver && !isAiThinking;
+                                    const canPlace = cell === null && (isTwoPlayer || isPlayerTurn) && !isGameOver && !isAiThinking;
 
                                     return (
                                         <button

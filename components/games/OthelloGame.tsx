@@ -37,6 +37,8 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
 }) => {
     const { scores: highScores, saveScore } = useHighScores('othello');
     const {
+        isTwoPlayer,
+        setIsTwoPlayer,
         board,
         turn,
         playerColor,
@@ -72,7 +74,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
 
     // Score calculation on game over
     useEffect(() => {
-        if (isGameOver && hasStarted && playerName) {
+        if (!isTwoPlayer && isGameOver && hasStarted && playerName) {
             // High score based on player discs and victory margin
             const margin = Math.max(0, playerScore - aiScore);
             const calculatedScore = playerScore * 100 + margin * 50;
@@ -80,7 +82,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                 saveScore(playerName, calculatedScore);
             }
         }
-    }, [isGameOver, hasStarted, playerName, playerScore, aiScore, saveScore]);
+    }, [isTwoPlayer, isGameOver, hasStarted, playerName, playerScore, aiScore, saveScore]);
 
     // Keyboard shortcuts (P/ESC for pause)
     useEffect(() => {
@@ -98,13 +100,13 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
     // Fast lookup set for valid moves
     const validMovesMap = useMemo(() => {
         const map = new Map<string, number>();
-        if (!isGameOver && isPlayerTurn && hasStarted) {
+        if (!isGameOver && (isTwoPlayer || isPlayerTurn) && hasStarted) {
             for (const move of currentValidMoves) {
                 map.set(`${move.row}-${move.col}`, move.flipped.length);
             }
         }
         return map;
-    }, [currentValidMoves, isGameOver, isPlayerTurn, hasStarted]);
+    }, [currentValidMoves, isGameOver, isPlayerTurn, isTwoPlayer, hasStarted]);
 
     const isFlippedRecently = (r: number, c: number) => {
         return recentlyFlipped.some(f => f.row === r && f.col === c);
@@ -189,11 +191,11 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                         <div>
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs sm:text-sm font-bold text-white">
-                                    {playerName || 'Player'}
+                                    {isTwoPlayer ? (playerColor === 'B' ? 'Black' : 'White') : (playerName || 'Player')}
                                 </span>
                                 {isPlayerTurn && !isGameOver && (
                                     <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded font-semibold border border-cyan-500/30 animate-pulse">
-                                        Your Turn
+                                        {isTwoPlayer ? 'To Move' : 'Your Turn'}
                                     </span>
                                 )}
                             </div>
@@ -227,7 +229,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                         <div>
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-1">
-                                    Neural AI
+                                    {isTwoPlayer ? (aiColor === 'B' ? 'Black' : 'White') : 'Neural AI'}
                                 </span>
                                 {isAiThinking ? (
                                     <span className="text-[10px] bg-purple-500/20 text-purple-300 px-1.5 py-0.2 rounded font-semibold border border-purple-500/30 animate-bounce">
@@ -235,13 +237,13 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                                     </span>
                                 ) : !isPlayerTurn && !isGameOver ? (
                                     <span className="text-[10px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.2 rounded font-semibold border border-indigo-500/30">
-                                        AI Turn
+                                        {isTwoPlayer ? 'To Move' : 'AI Turn'}
                                     </span>
                                 ) : null}
                             </div>
-                            <span className="text-[11px] text-slate-400 capitalize">
+                            {!isTwoPlayer && <span className="text-[11px] text-slate-400 capitalize">
                                 {aiDifficulty} • Gen {brainStats.evolutionLevel}
-                            </span>
+                            </span>}
                         </div>
                     </div>
                     <div className="text-2xl sm:text-3xl font-black font-mono text-indigo-400">
@@ -372,8 +374,21 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
 
             {/* Bottom Controls Bar */}
             <footer className="w-full max-w-4xl py-2.5 px-4 bg-slate-900/80 border border-slate-800 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs z-10">
+                <select
+                    aria-label="Game mode"
+                    value={isTwoPlayer ? 'local' : 'computer'}
+                    onChange={event => {
+                        setIsTwoPlayer(event.target.value === 'local');
+                        restartGame();
+                    }}
+                    className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200"
+                >
+                    <option value="computer">Vs. Computer</option>
+                    <option value="local">Two Players (Local)</option>
+                </select>
+
                 {/* AI Difficulty Selector */}
-                <div className="flex items-center gap-2">
+                {!isTwoPlayer && <div className="flex items-center gap-2">
                     <span className="text-slate-400 flex items-center gap-1 font-semibold">
                         <SlidersHorizontal className="w-3.5 h-3.5" /> AI Model:
                     </span>
@@ -392,7 +407,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                             </button>
                         ))}
                     </div>
-                </div>
+                </div>}
 
                 {/* Match Actions */}
                 <div className="flex items-center gap-2">
@@ -404,7 +419,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                         <span>Restart Match</span>
                     </button>
 
-                    <button
+                    {!isTwoPlayer && <button
                         onClick={() => {
                             setPlayerColor(prev => prev === 'B' ? 'W' : 'B');
                             restartGame();
@@ -413,7 +428,7 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
                         title="Swap side (Play as Black / Play as White)"
                     >
                         Swap Sides
-                    </button>
+                    </button>}
                 </div>
             </footer>
 
@@ -448,22 +463,22 @@ export const OthelloGame: React.FC<OthelloGameProps> = ({
 
                         <div className="grid grid-cols-2 gap-3 w-full my-4 p-3 bg-slate-950 rounded-xl border border-slate-800">
                             <div className="flex flex-col">
-                                <span className="text-xs text-slate-400 font-medium">Your Discs</span>
+                                <span className="text-xs text-slate-400 font-medium">{isTwoPlayer ? (playerColor === 'B' ? 'Black Discs' : 'White Discs') : 'Your Discs'}</span>
                                 <span className="text-3xl font-black text-cyan-400 font-mono mt-0.5">
                                     {playerScore}
                                 </span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-xs text-slate-400 font-medium">Neural AI Discs</span>
+                                <span className="text-xs text-slate-400 font-medium">{isTwoPlayer ? (aiColor === 'B' ? 'Black Discs' : 'White Discs') : 'Neural AI Discs'}</span>
                                 <span className="text-3xl font-black text-indigo-400 font-mono mt-0.5">
                                     {aiScore}
                                 </span>
                             </div>
                         </div>
 
-                        <p className="text-xs text-slate-400 mb-4">
+                        {!isTwoPlayer && <p className="text-xs text-slate-400 mb-4">
                             Reinforcement learning policy updated! The AI analyzed all {playerScore + aiScore} placed moves to adjust its future positional weights.
-                        </p>
+                        </p>}
 
                         <div className="w-full mb-4">
                             <Leaderboard scores={highScores} />

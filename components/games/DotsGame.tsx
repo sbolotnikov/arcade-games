@@ -206,7 +206,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                     <button
                         onClick={() => setShowSettings(true)}
                         className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                        title="Board and difficulty settings"
+                        title="Game mode, board, and difficulty settings"
                     >
                         <Settings className="w-4 h-4" />
                     </button>
@@ -501,7 +501,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                     <button
                         onClick={() => setShowSettings(true)}
                         className="hidden sm:inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded bg-slate-800/80 hover:bg-slate-750 border border-slate-700/60 ml-2 transition-colors cursor-pointer"
-                        title="Change board or difficulty settings"
+                        title="Change game mode, board, or difficulty"
                     >
                         <span>{gridSize}×{gridSize}</span>
                         <span>•</span>
@@ -755,7 +755,7 @@ export const DotsGame: React.FC<DotsGameProps> = ({ playerName, controlType = 'k
                                                     : 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700'
                                             }`}
                                         >
-                                            <div className="text-xs font-bold">Vs. AI</div>
+                                            <div className="text-xs font-bold">Vs. Computer</div>
                                             <div className="text-[10px] text-slate-400">Single-player duel</div>
                                         </button>
                                         <button
