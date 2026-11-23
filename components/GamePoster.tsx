@@ -143,6 +143,14 @@ export const POSTER_METADATA: Record<string, PosterMetadata> = {
         accentColor: '#f59e0b',
         badgeText: 'ROOT BEER SALOON'
     },
+    'tile-rummy': {
+        title: 'TILE RUMMY',
+        subtitle: 'RUNS AND SETS',
+        tagline: 'Empty your rack',
+        primaryColor: '#0f766e',
+        accentColor: '#99f6e4',
+        badgeText: 'LOCAL OR COMPUTER',
+    },
     chess: {
         title: 'CHESS',
         subtitle: 'BOARD STRATEGY',
@@ -438,6 +446,17 @@ case 'dots':
                             (e.currentTarget as HTMLImageElement).src = '/posters/dots.png';
                         }}
                     />
+                );
+            case 'tile-rummy':
+                return (
+                    <div aria-hidden className="flex h-full items-center justify-center gap-2 bg-teal-950 pb-5">
+                        {[8, 9, 10].map((number, index) => (
+                            <span key={number} style={{ transform: `rotate(${(index - 1) * 10}deg)` }}
+                                className="grid h-16 w-12 place-items-center rounded-lg border-b-4 border-amber-500 bg-stone-100 text-2xl font-black text-rose-800 shadow-xl">
+                                {number}
+                            </span>
+                        ))}
+                    </div>
                 );
             case 'chess':
             case 'checkers':

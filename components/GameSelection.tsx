@@ -332,6 +332,7 @@ const DotsIcon: React.FC = () => (
 );
 
 const GAME_ICONS: Record<string, React.FC> = {
+    'tile-rummy': () => <span aria-hidden className="rounded bg-stone-100 px-1 font-bold text-rose-700">12</span>,
     chess: () => <span aria-hidden className="text-2xl leading-none text-amber-200">?</span>,
     checkers: () => <span aria-hidden className="text-2xl leading-none text-teal-300">?</span>,
     dots: DotsIcon,
@@ -360,6 +361,7 @@ interface GameMeta {
 }
 
 const ALL_GAMES: GameMeta[] = [
+    { id: 'tile-rummy', category: 'puzzle', badgeEmoji: '??' },
     { id: 'chess', category: 'puzzle', badgeEmoji: '?' },
     { id: 'checkers', category: 'puzzle', badgeEmoji: '?' },
     { id: 'dots', category: 'puzzle', badgeEmoji: '🔵' },

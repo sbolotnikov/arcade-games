@@ -428,6 +428,19 @@ export const GAME_DESCRIPTIONS: Record<string, GameInfo> = {
             }
         ]
     },
+    'tile-rummy': {
+        id: 'tile-rummy',
+        title: 'Tile Rummy',
+        genre: 'Tile Strategy',
+        shortDescription: 'Build runs and sets to empty your rack before a friend or the computer.',
+        gameplay: 'Open with one or more melds worth at least 30 points. On later turns, play new melds or add to one on the table. Draw a tile to end your turn if you cannot play.',
+        features: ['Private rack handoffs for two local players', 'Computer opponent'],
+        controls: {
+            keyboard: 'Click tiles or select them with Tab and Enter.',
+            touch: 'Tap tiles, then stage and play the meld.',
+        },
+        tips: 'Stage multiple melds to reach 30 points on your first play.',
+    },
     chess: {
         id: 'chess',
         title: 'Chess',

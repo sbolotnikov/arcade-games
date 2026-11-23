@@ -18,6 +18,7 @@ import { OthelloGame } from '@/components/games/OthelloGame';
 import { RenjuGame } from '@/components/games/RenjuGame';
 import Game1942 from '@/components/games/Game1942';
 import { BejeweledGame } from '@/components/games/BejeweledGame';
+import { TileRummyGame } from '@/components/games/TileRummyGame';
 import { StrategyBoardGame } from '@/components/games/StrategyBoardGame';
 import { DotsGame } from '@/components/games/DotsGame';
 
@@ -171,6 +172,8 @@ const App: React.FC = () => {
                             controlType={controlType || 'keyboard'}
                             onBack={handleBackToGames}
                         />;
+            case 'tile-rummy':
+                return <TileRummyGame onExit={handleBackToGames} />;
             case 'chess':
             case 'checkers':
                 return <StrategyBoardGame key={selectedGame} game={selectedGame} onExit={handleBackToGames} />;
